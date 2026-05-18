@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visiqua — Agent Demand Map</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1B3A6B;
+    --orange: #E8632A;
+    --blue-high: #185FA5;
+    --blue-active: #85B7EB;
+    --amber: #E8C547;
+    --teal: #1D9E75;
+    --teal-light: #9FE1CB;
+    --supply-4: #085041;
+    --supply-3: #1D9E75;
+    --supply-2: #5DCAA5;
+    --supply-1: #9FE1CB;
+    --supply-0: #E8EDF2;
+    --bg: #F4F6FA;
+    --surface: #FFFFFF;
+    --surface-2: #EEF2F8;
+    --border: rgba(27,58,107,0.12);
+    --border-strong: rgba(27,58,107,0.22);
+    --text-primary: #0F1E36;
+    --text-secondary: #4A6080;
+    --text-muted: #8A9BB0;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--font);
+    font-weight: 600;
+    font-size: 16px;
+    color: #fff;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--orange);
+    border-radius: 50%;
+  }
+
+  .header-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    font-family: var(--mono);
+  }
+
+  .header-badge {
+    background: rgba(232,99,42,0.2);
+    color: var(--orange);
+    border: 1px solid rgba(232,99,42,0.35);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--mono);
+  }
+
+  /* ── LAYOUT ── */
+  .page { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-section {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* ── METRICS ── */
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .metric-card {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+
+  .metric-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+  .metric-val { font-size: 18px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+  .metric-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+  .metric-val.blue { color: var(--blue-high); }
+  .metric-val.amber { color: #B87A0A; }
+  .metric-val.teal { color: var(--teal); }
+
+  /* ── SEGMENT CONTROLS ── */
+  .seg-group { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  .seg-btn {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+
+  .seg-btn:hover { background: var(--surface-2); }
+  .seg-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .seg-btn.orange.active { background: var(--orange); border-color: var(--orange); }
+
+  /* ── LEGEND ── */
+  .legend-list { display: flex; flex-direction: column; gap: 7px; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .legend-swatch {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    padding: 16px 20px;
+    flex: 1;
+    display: none;
+  }
+
+  .detail-panel.visible { display: block; }
+
+  .dp-state-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .dp-rep {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+  .dp-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+
+  .dp-card-label { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+  .dp-card-val { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+  .dp-notes {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .opp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .opp-badge.activate { background: rgba(232,99,42,0.12); color: var(--orange); }
+  .opp-badge.active { background: rgba(24,95,165,0.1); color: var(--blue-high); }
+  .opp-badge.low { background: var(--surface-2); color: var(--text-muted); }
+
+  .dp-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+
+  .dp-btn {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dp-btn:hover { background: var(--surface-2); }
+  .dp-btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .dp-btn.primary:hover { opacity: 0.9; }
+  .dp-btn .icon { font-size: 14px; }
+
+  .dp-placeholder {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .dp-placeholder svg { opacity: 0.3; }
+
+  /* ── MAP AREA ── */
+  .map-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .map-toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .toolbar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+  }
+
+  #map-svg-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #map-svg-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-watermark {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    font-size: 10px;
+    color: rgba(0,0,0,0.2);
+    font-family: var(--mono);
+    pointer-events: none;
+  }
+
+  .tooltip {
+    position: absolute;
+    background: var(--navy);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .1s;
+    white-space: nowrap;
+    z-index: 50;
+  }
+
+  /* ── SUPPLY BAR ── */
+  .supply-bar-wrap {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    pointer-events: none;
+  }
+
+  .supply-bar-label { font-size: 10px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+  .supply-bar-row { display: flex; align-items: center; gap: 6px; }
+  .supply-bar-swatch { width: 20px; height: 10px; border-radius: 2px; }
+  .supply-bar-text { font-size: 10px; color: var(--text-secondary); }
+
+  /* ── SCROLLBAR ── */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 220px; }
+  }
+
+  @media (max-width: 680px) {
+    .page { flex-direction: column; height: auto; }
+    .sidebar { width: 100%; height: auto; overflow: visible; }
+    #map-svg-wrap { height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    VISIQUA
+  </div>
+  <div class="header-meta">Agent Program · March 2026</div>
+  <div class="header-badge">INTERNAL</div>
+</header>
+
+<div class="page">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Program metrics</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-label">Enrolled</div>
+          <div class="metric-val" id="m-enrolled">112</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active</div>
+          <div class="metric-val blue" id="m-active">36 <span class="metric-sub">32%</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Revenue</div>
+          <div class="metric-val" id="m-rev">$83,245</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Supply/day</div>
+          <div class="metric-val teal" id="m-supply">~4,200 <span class="metric-sub">est.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Vertical</div>
+      <div class="seg-group">
+        <button class="seg-btn active" id="v-both" onclick="setVertical('both')">Both</button>
+        <button class="seg-btn" id="v-auto" onclick="setVertical('auto')">Auto</button>
+        <button class="seg-btn" id="v-home" onclick="setVertical('home')">Home</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Map view</div>
+      <div class="seg-group">
+        <button class="seg-btn active" id="btn-demand" onclick="setMapMode('demand')">Agent demand</button>
+        <button class="seg-btn" id="btn-supply" onclick="setMapMode('supply')">Supply</button>
+        <button class="seg-btn" id="btn-overlap" onclick="setMapMode('overlap')">Overlap</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filter states</div>
+      <div class="seg-group">
+        <button class="seg-btn active" id="f-all" onclick="setFilter('all')">All</button>
+        <button class="seg-btn" id="f-high" onclick="setFilter('high')">High demand</button>
+        <button class="seg-btn" id="f-dormant" onclick="setFilter('dormant')">Dormant</button>
+        <button class="seg-btn orange" id="f-opportunity" onclick="setFilter('opportunity')">Activate now</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Legend</div>
+      <div class="legend-list" id="legend-list"></div>
+    </div>
+
+    <div class="sidebar-section" style="border-bottom:none;">
+      <div class="sidebar-label">Rep books</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--navy);flex-shrink:0;"></div>
+          <span><strong>Brittany</strong> — AL AK AR AZ CA CO CT GA HI KY LA MN MS NC NV NY OK OR PA RI SC TN UT VA WV</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);flex-shrink:0;"></div>
+          <span><strong>Stacy</strong> — DE FL ID IL IN IA KS ME MD MA MI MO MT ND NE NH NJ NM OH SD TX VT WA WI WY</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── MAP ── -->
+  <div class="map-area">
+    <div class="map-toolbar">
+      <div class="toolbar-group">
+        <div class="toolbar-label">Quick highlight</div>
+        <button class="seg-btn" onclick="highlightRep('Brittany')">Brittany's states</button>
+        <button class="seg-btn" onclick="highlightRep('Stacy')">Stacy's states</button>
+        <button class="seg-btn" onclick="highlightRep(null)">Clear</button>
+      </div>
+      <div class="toolbar-divider"></div>
+      <div class="toolbar-group">
+        <div class="toolbar-label">Data</div>
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono);">Supply figures estimated · click state for details</span>
+      </div>
+    </div>
+
+    <div id="map-svg-wrap">
+      <div class="tooltip" id="tooltip"></div>
+      <div class="map-watermark">Visiqua Agent Program · March 2026 · Confidential</div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="sidebar" style="width:240px;border-right:none;border-left:1px solid var(--border);">
+    <div class="dp-placeholder" id="dp-placeholder">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 16l4.553-2.276A1 1 0 0021 19.382V8.618a1 1 0 00-.553-.894L15 5m0 18V5M9 7l6-2"/></svg>
+      <span>Click any state<br>to see details</span>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div class="dp-state-name" id="dp-state"></div>
+      <div class="dp-rep" id="dp-rep"></div>
+      <div class="dp-grid">
+        <div class="dp-card"><div class="dp-card-label">Revenue</div><div class="dp-card-val" id="dp-rev"></div></div>
+        <div class="dp-card"><div class="dp-card-label">Vertical</div><div class="dp-card-val" id="dp-vert"></div></div>
+        <div class="dp-card"><div class="dp-card-label">Supply/day</div><div class="dp-card-val" style="color:var(--teal)" id="dp-supply"></div></div>
+        <div class="dp-card"><div class="dp-card-label">Status</div><div class="dp-card-val" id="dp-status"></div></div>
+      </div>
+      <div id="dp-opp-wrap" style="margin-bottom:10px;"></div>
+      <div class="dp-notes" id="dp-notes"></div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+const stateData = {
+  "Colorado":       { rep:"Brittany", status:"high",    vertical:"both", revenue:15855, autoLeads:320,  homeLeads:180, notes:"Top revenue state. Michael Jankovsky & Rena Gilliam top producers. Brandon Black paused after 1 strong week." },
+  "Texas":          { rep:"Stacy",    status:"high",    vertical:"both", revenue:14929, autoLeads:850,  homeLeads:420, notes:"Largest Stacy state. Second-largest TX producer paused after 3-4 weeks — prime reactivation target." },
+  "Florida":        { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:720,  homeLeads:310, notes:"Active agents. Revenue detail to be populated from weekly tracker." },
+  "New York":       { rep:"Brittany", status:"active",  vertical:"auto", revenue:null,  autoLeads:480,  homeLeads:90,  notes:"Active agents — primarily auto. Revenue detail to be populated." },
+  "Illinois":       { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:310,  homeLeads:140, notes:"Active agents. Revenue detail to be populated." },
+  "California":     { rep:"Brittany", status:"farmers", vertical:"home", revenue:4510,  autoLeads:0,    homeLeads:451, notes:"Farmers only. Doug Runyon + Joseph. Internet leads, home only. WA/OR expansion pending AgencyZoom." },
+  "Georgia":        { rep:"Brittany", status:"active",  vertical:"auto", revenue:null,  autoLeads:260,  homeLeads:80,  notes:"Active agents. Revenue detail to be populated." },
+  "Tennessee":      { rep:"Brittany", status:"active",  vertical:"both", revenue:null,  autoLeads:190,  homeLeads:95,  notes:"Active agents. Revenue detail to be populated." },
+  "Maryland":       { rep:"Stacy",    status:"active",  vertical:"auto", revenue:null,  autoLeads:220,  homeLeads:60,  notes:"Active agents. Revenue detail to be populated." },
+  "Massachusetts":  { rep:"Stacy",    status:"active",  vertical:"auto", revenue:null,  autoLeads:200,  homeLeads:50,  notes:"Active agents. Revenue detail to be populated." },
+  "Michigan":       { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:280,  homeLeads:120, notes:"Active agents. Revenue detail to be populated." },
+  "Missouri":       { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:240,  homeLeads:100, notes:"Active agents. Revenue detail to be populated." },
+  "New Jersey":     { rep:"Stacy",    status:"active",  vertical:"auto", revenue:null,  autoLeads:310,  homeLeads:70,  notes:"Active agents. Revenue detail to be populated." },
+  "Ohio":           { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:330,  homeLeads:150, notes:"Active agents. Revenue detail to be populated." },
+  "Wisconsin":      { rep:"Stacy",    status:"active",  vertical:"both", revenue:null,  autoLeads:180,  homeLeads:90,  notes:"Active agents. Revenue detail to be populated." },
+  "Washington":     { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:1000, homeLeads:420, notes:"OPPORTUNITY: ~1,420 leads/day available. Enrolled agents never spent. Farmers expansion target (AgencyZoom pending). High-priority activation state." },
+  "Oregon":         { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:380,  homeLeads:160, notes:"OPPORTUNITY: ~540 leads/day. Farmers expansion target. Enrolled agents never spent." },
+  "Alabama":        { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:210,  homeLeads:60,  notes:"Enrolled agents — never spent. Moderate supply available." },
+  "Alaska":         { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:40,   homeLeads:10,  notes:"Enrolled agents — never spent. Low supply volume." },
+  "Arkansas":       { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:130,  homeLeads:50,  notes:"Enrolled agents — never spent. Light supply available." },
+  "Arizona":        { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:450,  homeLeads:200, notes:"OPPORTUNITY: ~650 leads/day. Enrolled agents never spent. Strong supply — high-priority activation target." },
+  "Connecticut":    { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:140,  homeLeads:40,  notes:"Enrolled agents — never spent. Light supply." },
+  "Hawaii":         { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:50,   homeLeads:15,  notes:"Enrolled agents — never spent. Very low supply volume." },
+  "Kentucky":       { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:160,  homeLeads:70,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Louisiana":      { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:200,  homeLeads:90,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Minnesota":      { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:280,  homeLeads:110, notes:"Enrolled agents — never spent. Good supply available." },
+  "Mississippi":    { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:130,  homeLeads:40,  notes:"Enrolled agents — never spent. Light supply." },
+  "North Carolina": { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:420,  homeLeads:180, notes:"OPPORTUNITY: ~600 leads/day. Enrolled agents never spent. High-priority activation." },
+  "Nevada":         { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:260,  homeLeads:100, notes:"Enrolled agents — never spent. Moderate-good supply." },
+  "Oklahoma":       { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:170,  homeLeads:80,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Pennsylvania":   { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:510,  homeLeads:220, notes:"OPPORTUNITY: ~730 leads/day. Enrolled agents never spent. Large state — high-priority." },
+  "Rhode Island":   { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:50,   homeLeads:15,  notes:"Enrolled agents — never spent. Very low supply." },
+  "South Carolina": { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:230,  homeLeads:95,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Utah":           { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:190,  homeLeads:80,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Virginia":       { rep:"Brittany", status:"dormant", vertical:"both", revenue:null,  autoLeads:380,  homeLeads:160, notes:"OPPORTUNITY: ~540 leads/day. Enrolled agents never spent." },
+  "West Virginia":  { rep:"Brittany", status:"dormant", vertical:"auto", revenue:null,  autoLeads:80,   homeLeads:25,  notes:"Enrolled agents — never spent. Light supply." },
+  "Delaware":       { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:60,   homeLeads:20,  notes:"Enrolled agents — never spent. Very low supply." },
+  "Idaho":          { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:120,  homeLeads:55,  notes:"Enrolled agents — never spent. Light-moderate supply." },
+  "Indiana":        { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:260,  homeLeads:110, notes:"Enrolled agents — never spent. Good supply available." },
+  "Iowa":           { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:160,  homeLeads:70,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Kansas":         { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:140,  homeLeads:60,  notes:"Enrolled agents — never spent. Moderate supply." },
+  "Maine":          { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:70,   homeLeads:20,  notes:"Enrolled agents — never spent. Low supply." },
+  "Montana":        { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:60,   homeLeads:20,  notes:"Enrolled agents — never spent. Low supply." },
+  "North Dakota":   { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:50,   homeLeads:15,  notes:"Enrolled agents — never spent. Very low supply." },
+  "Nebraska":       { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:130,  homeLeads:55,  notes:"Enrolled agents — never spent. Light supply." },
+  "New Hampshire":  { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:80,   homeLeads:25,  notes:"Enrolled agents — never spent. Low supply." },
+  "New Mexico":     { rep:"Stacy",    status:"dormant", vertical:"both", revenue:null,  autoLeads:130,  homeLeads:55,  notes:"Enrolled agents — never spent. Light supply." },
+  "South Dakota":   { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:55,   homeLeads:15,  notes:"Enrolled agents — never spent. Very low supply." },
+  "Vermont":        { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:45,   homeLeads:12,  notes:"Enrolled agents — never spent. Very low supply." },
+  "Wyoming":        { rep:"Stacy",    status:"dormant", vertical:"auto", revenue:null,  autoLeads:40,   homeLeads:12,  notes:"Enrolled agents — never spent. Very low supply." },
+};
+
+let vertical = "both";
+let mapMode = "demand";
+let statusFilter = "all";
+let repHighlight = null;
+
+const demandColors  = { high:"#185FA5", farmers:"#1D9E75", active:"#85B7EB", dormant:"#E8C547", none:"#E8EDF2" };
+const supplyColors  = ["#E8EDF2","#9FE1CB","#5DCAA5","#1D9E75","#085041"];
+const overlapColors = { "high":"#185FA5","farmers":"#1D9E75","active":"#85B7EB","dormant-supply":"#E8632A","dormant-low":"#E8C547","none":"#E8EDF2" };
+
+function getSupply(s) {
+  if(!s) return 0;
+  if(vertical === "auto") return s.autoLeads;
+  if(vertical === "home") return s.homeLeads;
+  return s.autoLeads + s.homeLeads;
+}
+
+function supplyTier(v) {
+  if(v === 0) return 0; if(v < 100) return 1; if(v < 300) return 2; if(v < 600) return 3; return 4;
+}
+
+function getColor(name) {
+  const s = stateData[name];
+  const supply = getSupply(s);
+  const dimColor = "#E8EDF2";
+
+  if(repHighlight && s && s.rep !== repHighlight) return dimColor;
+
+  if(statusFilter !== "all") {
+    if(statusFilter === "high"        && s && s.status === "high")    return demandColors.high;
+    if(statusFilter === "dormant"     && s && s.status === "dormant") return demandColors.dormant;
+    if(statusFilter === "opportunity" && s && s.status === "dormant" && supply > 200) return "#E8632A";
+    return dimColor;
+  }
+
+  if(mapMode === "demand") {
+    if(!s) return dimColor;
+    if(vertical !== "both" && s.vertical !== vertical && s.vertical !== "both") return dimColor;
+    return demandColors[s.status] || dimColor;
+  }
+  if(mapMode === "supply") {
+    if(vertical !== "both" && s && s.vertical !== vertical && s.vertical !== "both") return dimColor;
+    return supplyColors[supplyTier(supply)];
+  }
+  if(mapMode === "overlap") {
+    if(!s) return dimColor;
+    if(vertical !== "both" && s.vertical !== vertical && s.vertical !== "both") return dimColor;
+    if(s.status === "high")    return overlapColors.high;
+    if(s.status === "farmers") return overlapColors.farmers;
+    if(s.status === "active")  return overlapColors.active;
+    if(s.status === "dormant") return supply > 200 ? overlapColors["dormant-supply"] : overlapColors["dormant-low"];
+    return dimColor;
+  }
+  return dimColor;
+}
+
+const legends = {
+  demand:  [ {c:"#185FA5",l:"High demand"},{c:"#85B7EB",l:"Active agents"},{c:"#E8C547",l:"Dormant agents"},{c:"#1D9E75",l:"Farmers (CA)"},{c:"#E8EDF2",l:"No agents"} ],
+  supply:  [ {c:"#085041",l:"600+/day"},{c:"#1D9E75",l:"300–600/day"},{c:"#5DCAA5",l:"100–300/day"},{c:"#9FE1CB",l:"<100/day"},{c:"#E8EDF2",l:"No data"} ],
+  overlap: [ {c:"#185FA5",l:"High demand"},{c:"#E8632A",l:"Dormant + supply → activate"},{c:"#E8C547",l:"Dormant, low supply"},{c:"#85B7EB",l:"Active agents"},{c:"#1D9E75",l:"Farmers (CA)"} ],
+};
+
+function updateLegend() {
+  const list = document.getElementById("legend-list");
+  list.innerHTML = (legends[mapMode]||legends.demand).map(i =>
+    `<div class="legend-item"><span class="legend-swatch" style="background:${i.c}"></span>${i.l}</div>`
+  ).join("");
+}
+
+function updateMetrics() {
+  let totalSupply = 0;
+  Object.values(stateData).forEach(s => { totalSupply += getSupply(s); });
+  document.getElementById("m-supply").innerHTML = "~" + totalSupply.toLocaleString() + ' <span class="metric-sub">est./day</span>';
+  const revMap = {both:83245, auto:52000, home:31245};
+  document.getElementById("m-rev").textContent = "$" + (revMap[vertical]||83245).toLocaleString();
+}
+
+function refreshMap() { d3.selectAll(".s-path").attr("fill", d => getColor(d.properties.name)); }
+
+function setVertical(v) {
+  vertical = v;
+  ["both","auto","home"].forEach(id => document.getElementById("v-"+id).classList.toggle("active", id===v));
+  refreshMap(); updateMetrics();
+}
+
+function setMapMode(m) {
+  mapMode = m; statusFilter = "all";
+  ["demand","supply","overlap"].forEach(id => document.getElementById("btn-"+id).classList.toggle("active", id===m));
+  ["all","high","dormant","opportunity"].forEach(id => document.getElementById("f-"+id).classList.toggle("active", id==="all"));
+  refreshMap(); updateLegend();
+}
+
+function setFilter(f) {
+  statusFilter = f;
+  ["all","high","dormant","opportunity"].forEach(id => document.getElementById("f-"+id).classList.toggle("active", id===f));
+  refreshMap();
+}
+
+function highlightRep(rep) {
+  repHighlight = rep; refreshMap();
+}
+
+const tooltip = document.getElementById("tooltip");
+
+d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(us => {
+  const wrap = document.getElementById("map-svg-wrap");
+  const svg = d3.select("#map-svg-wrap").append("svg").attr("viewBox","0 0 960 560").attr("width","100%").attr("height","100%");
+  const proj = d3.geoAlbersUsa().scale(1100).translate([480,280]);
+  const path = d3.geoPath(proj);
+
+  svg.selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .join("path")
+    .attr("class","s-path")
+    .attr("d", path)
+    .attr("stroke","#fff")
+    .attr("stroke-width", 0.7)
+    .attr("fill", d => getColor(d.properties.name))
+    .style("cursor","pointer")
+    .style("transition","fill .2s ease")
+    .on("mousemove", function(event, d) {
+      const name = d.properties.name;
+      const s = stateData[name];
+      const supply = getSupply(s);
+      tooltip.style.opacity = "1";
+      tooltip.style.left = (event.offsetX + 14) + "px";
+      tooltip.style.top  = (event.offsetY - 10) + "px";
+      tooltip.textContent = name + (supply ? "  ·  ~" + supply.toLocaleString() + " leads/day" : "");
+      d3.select(this).attr("stroke-width", 2);
+    })
+    .on("mouseleave", function() {
+      tooltip.style.opacity = "0";
+      d3.select(this).attr("stroke-width", 0.7);
+    })
+    .on("click", function(event, d) {
+      const name = d.properties.name;
+      const s = stateData[name];
+      const supply = getSupply(s);
+      document.getElementById("dp-placeholder").style.display = "none";
+      const panel = document.getElementById("detail-panel");
+      panel.classList.add("visible");
+
+      document.getElementById("dp-state").textContent = name;
+      document.getElementById("dp-rep").textContent = s ? "Rep: " + s.rep : "Not in program";
+      document.getElementById("dp-rev").textContent = s && s.revenue ? "$" + s.revenue.toLocaleString() : "—";
+      const vl = {auto:"Auto only",home:"Home only",both:"Auto + Home"};
+      document.getElementById("dp-vert").textContent = s ? (vl[s.vertical]||"—") : "—";
+      document.getElementById("dp-supply").textContent = supply > 0 ? "~" + supply.toLocaleString() + "/day" : "No data";
+      const sl = {high:"High demand",farmers:"Farmers (CA)",active:"Active",dormant:"Dormant",none:"No agents"};
+      const sc = {high:"color:#185FA5",farmers:"color:#1D9E75",active:"color:#378ADD",dormant:"color:#B87A0A",none:"color:#8A9BB0"};
+      const st = s ? s.status : "none";
+      document.getElementById("dp-status").textContent = sl[st]||"None";
+      document.getElementById("dp-status").style.cssText = sc[st]||"";
+
+      const oppWrap = document.getElementById("dp-opp-wrap");
+      if(s && s.status === "dormant" && supply > 200) {
+        oppWrap.innerHTML = '<span class="opp-badge activate">⚡ Activate now — good supply</span>';
+      } else if(s && (s.status === "active" || s.status === "high")) {
+        oppWrap.innerHTML = '<span class="opp-badge active">● Agents active</span>';
+      } else {
+        oppWrap.innerHTML = '<span class="opp-badge low">Low supply priority</span>';
+      }
+      document.getElementById("dp-notes").textContent = s ? s.notes : "No agents enrolled in this state.";
+    });
+
+  updateLegend(); updateMetrics();
+  document.getElementById("f-all").classList.add("active");
+}).catch(() => {
+  document.getElementById("map-svg-wrap").innerHTML = '<div style="padding:40px;text-align:center;color:#8A9BB0;">Map data unavailable — check your internet connection.</div>';
+});
+</script>
+</body>
+</html>
