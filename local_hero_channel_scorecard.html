@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Hero — Channel Performance Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B3A6B;--orange:#E8632A;--teal:#1D9E75;--blue:#185FA5;--blue-lt:#C5D8F0;
+  --red:#C93030;--amber:#D4820A;--green:#1A7A55;
+  --red-bg:rgba(201,48,48,.08);--amber-bg:rgba(212,130,10,.09);--green-bg:rgba(26,122,85,.09);
+  --bg:#F2F5FA;--surface:#fff;--surface-2:#EBF0F8;--surface-3:#DDE5F2;
+  --border:rgba(27,58,107,.1);--border-md:rgba(27,58,107,.18);
+  --text:#0D1B2E;--text-2:#45607A;--text-3:#8097AE;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--r-lg:14px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;}
+header{background:var(--navy);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:200;}
+.logo{font-weight:600;font-size:15px;color:#fff;letter-spacing:.05em;display:flex;align-items:center;gap:8px;}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--orange);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.hdr-badge{background:rgba(232,99,42,.2);color:var(--orange);border:1px solid rgba(232,99,42,.35);font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;font-family:var(--mono);}
+.hdr-date{font-size:11px;color:rgba(255,255,255,.38);font-family:var(--mono);}
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto;}
+.tab-btn{font-family:var(--font);font-size:13px;font-weight:500;padding:12px 16px;border:none;background:transparent;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab-btn:hover{color:var(--text-2);}.tab-btn.active{color:var(--navy);border-bottom-color:var(--orange);font-weight:600;}
+.page{max-width:1420px;margin:0 auto;padding:22px 24px;}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+.alert{display:flex;align-items:flex-start;gap:10px;background:var(--red-bg);border:1px solid rgba(201,48,48,.25);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#7A1A1A;line-height:1.5;}
+.info-alert{display:flex;align-items:flex-start;gap:10px;background:rgba(24,95,165,.07);border:1px solid rgba(24,95,165,.2);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1B3A6B;line-height:1.5;}
+.section-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.section-title{font-size:15px;font-weight:600;color:var(--navy);}
+.section-sub{font-size:11px;color:var(--text-3);margin-top:2px;}
+.pills{display:flex;gap:3px;background:var(--surface-2);border-radius:22px;padding:3px;}
+.pill{font-family:var(--font);font-size:12px;font-weight:500;padding:4px 13px;border-radius:20px;border:none;background:transparent;color:var(--text-2);cursor:pointer;transition:all .15s;}
+.pill:hover{background:var(--surface-3);}.pill.active{background:var(--navy);color:#fff;}
+.kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:22px;}
+@media(max-width:1000px){.kpi-strip{grid-template-columns:repeat(4,1fr);}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px;}
+.kpi-val{font-size:20px;font-weight:600;color:var(--text);line-height:1.1;}
+.kpi-val.red{color:var(--red);}.kpi-val.green{color:var(--green);}.kpi-val.amber{color:var(--amber);}.kpi-val.teal{color:var(--teal);}
+.kpi-sub{font-size:11px;color:var(--text-3);margin-top:3px;}
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px;}
+.tbl-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.tbl-title{font-size:13px;font-weight:600;color:var(--navy);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--surface-2);padding:9px 11px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th.ck{background:rgba(29,158,117,.08);color:var(--teal);}
+thead th.div{border-left:2px solid var(--border-md);}
+tbody td{padding:9px 11px;font-size:12px;border-bottom:1px solid var(--border);}
+tbody td.ck{background:rgba(29,158,117,.04);}
+tbody td.div{border-left:2px solid var(--border);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--surface-2);}
+tbody tr.tot{background:var(--surface-2);font-weight:600;}
+.mono{font-family:var(--mono);font-size:12px;}
+td.neg{color:var(--red);font-weight:600;}td.pos{color:var(--green);font-weight:600;}td.warn{color:var(--amber);font-weight:600;}
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap;}
+.badge.green{background:var(--green-bg);color:var(--green);}.badge.amber{background:var(--amber-bg);color:var(--amber);}
+.badge.red{background:var(--red-bg);color:var(--red);}.badge.grey{background:var(--surface-2);color:var(--text-3);}
+.badge.blue{background:rgba(24,95,165,.1);color:var(--blue);}.badge.teal{background:rgba(29,158,117,.1);color:var(--teal);}
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.funnel-label{font-size:12px;color:var(--text-2);width:150px;flex-shrink:0;}
+.funnel-track{flex:1;height:8px;background:var(--surface-3);border-radius:4px;overflow:hidden;}
+.funnel-fill{height:100%;border-radius:4px;}
+.funnel-pct{font-size:12px;font-family:var(--mono);color:var(--text-2);width:52px;text-align:right;}
+.funnel-n{font-size:11px;color:var(--text-3);width:70px;text-align:right;}
+.drawer{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:20px;}
+.drawer.open{display:block;}
+.drawer-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.drawer-title{font-size:14px;font-weight:600;color:var(--navy);}
+.drawer-close{font-size:12px;padding:4px 12px;border:1px solid var(--border-md);background:var(--surface);border-radius:6px;cursor:pointer;color:var(--text-2);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+@media(max-width:780px){.two-col{grid-template-columns:1fr;}}
+.ch-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:1100px){.ch-grid{grid-template-columns:repeat(3,1fr);}}
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;cursor:pointer;transition:box-shadow .2s;position:relative;overflow:hidden;}
+.ch-card:hover{box-shadow:0 4px 18px rgba(27,58,107,.1);}
+.ch-card.selected{border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,95,165,.15);}
+.ch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.ch-card.meta::before{background:#1877F2;}.ch-card.dm::before{background:#185FA5;}
+.ch-card.rt::before{background:#E8632A;}.ch-card.coreg::before{background:#1D9E75;}.ch-card.aged::before{background:#8B5CF6;}
+.ch-name{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+.ch-rev{font-size:20px;font-weight:600;color:var(--text);}
+.ch-rev-sub{font-size:10px;color:var(--text-3);margin-bottom:8px;}
+.ch-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);}
+.ch-row:last-child{border-bottom:none;}
+.ch-row-label{color:var(--text-3);}
+.ch-row-val{font-family:var(--mono);font-weight:500;}
+.ch-row-val.red{color:var(--red);}.ch-row-val.green{color:var(--green);}.ch-row-val.teal{color:var(--teal);}.ch-row-val.muted{color:var(--text-3);}
+.ch-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
+.ch-profit{font-size:12px;font-weight:600;}
+.ch-profit.neg{color:var(--red);}.ch-profit.pos{color:var(--green);}
+.h-dot{width:8px;height:8px;border-radius:50%;}
+.h-dot.green{background:var(--green);}.h-dot.amber{background:var(--amber);}.h-dot.red{background:var(--red);}
+.redial-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.redial-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;text-align:center;}
+.redial-attempt{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;}
+.redial-count{font-size:28px;font-weight:600;color:var(--text);}
+.redial-sub{font-size:11px;color:var(--text-3);margin-top:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="logo-dot"></div>LOCAL HERO</div>
+  <div class="hdr-right">
+    <span class="hdr-date">May 2026 · MTD through May 17</span>
+    <span class="hdr-badge">INTERNAL</span>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('supply',this)">📡 Supply Scorecard</button>
+  <button class="tab-btn" onclick="switchTab('dialing',this)">📞 Dialing Operations</button>
+  <button class="tab-btn" onclick="switchTab('buyers',this)">🏢 Buyer Performance</button>
+  <button class="tab-btn" onclick="switchTab('trends',this)">📈 Monthly Trends</button>
+  <button class="tab-btn" onclick="switchTab('exec',this)">⚡ Executive Summary</button>
+</div>
+
+<!-- ══ TAB 1: SUPPLY SCORECARD ══ -->
+<div class="tab-pane active" id="tab-supply"><div class="page">
+  <div class="alert">⚠️ <div><strong>Program running at a loss MTD.</strong> May 1–17: Revenue $1,611 · Cost $5,450+ · Net <strong>−$3,839+</strong>. RT Leads largest drag (−$1,616 on $140 rev, 1 billable transfer). CoReg and DM are margin-positive. Click revenue is minimal ($31, Meta only) — activating clickwall on remaining channels is an immediate low-effort opportunity.</div></div>
+
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-label">MTD Revenue</div><div class="kpi-val">$1,611</div><div class="kpi-sub">May 1–17</div></div>
+    <div class="kpi"><div class="kpi-label">MTD Cost</div><div class="kpi-val amber">$5,450+</div><div class="kpi-sub">All channels</div></div>
+    <div class="kpi"><div class="kpi-label">MTD Profit</div><div class="kpi-val red">−$3,839+</div><div class="kpi-sub">−238% margin</div></div>
+    <div class="kpi"><div class="kpi-label">Call Revenue</div><div class="kpi-val">$1,525</div><div class="kpi-sub">34 billable calls/xfers</div></div>
+    <div class="kpi"><div class="kpi-label">Lead Revenue</div><div class="kpi-val">$8</div><div class="kpi-sub">10 leads sold</div></div>
+    <div class="kpi"><div class="kpi-label" style="color:var(--teal);">Click Revenue</div><div class="kpi-val teal">$31</div><div class="kpi-sub">7 CW actions · Meta only</div></div>
+    <div class="kpi"><div class="kpi-label">Billable Rate</div><div class="kpi-val red">0.8%</div><div class="kpi-sub">Of all activity</div></div>
+  </div>
+
+  <div class="section-hdr">
+    <div><div class="section-title">Channel overview — May MTD</div><div class="section-sub">Click any channel card for funnel detail</div></div>
+  </div>
+
+  <div class="ch-grid">
+    <div class="ch-card meta" onclick="toggleDrawer('meta')">
+      <div class="ch-name">Meta (Paid Social)</div>
+      <div class="ch-rev">$480</div><div class="ch-rev-sub">Total revenue</div>
+      <div class="ch-row"><span class="ch-row-label">Ad spend</span><span class="ch-row-val red">$1,669</span></div>
+      <div class="ch-row"><span class="ch-row-label">Billable calls</span><span class="ch-row-val">15</span></div>
+      <div class="ch-row"><span class="ch-row-label">Leads sold</span><span class="ch-row-val">10</span></div>
+      <div class="ch-row"><span class="ch-row-label">Clicks · billable CW</span><span class="ch-row-val teal">737 · 7</span></div>
+      <div class="ch-row"><span class="ch-row-label">Click revenue</span><span class="ch-row-val teal">$31.19</span></div>
+      <div class="ch-footer"><span class="ch-profit neg">−$1,189 profit</span><div class="h-dot red"></div></div>
+    </div>
+    <div class="ch-card dm" onclick="toggleDrawer('dm')">
+      <div class="ch-name">Direct Mail</div>
+      <div class="ch-rev">$731</div><div class="ch-rev-sub">Total revenue</div>
+      <div class="ch-row"><span class="ch-row-label">Mail drops</span><span class="ch-row-val">3,178</span></div>
+      <div class="ch-row"><span class="ch-row-label">Billable calls</span><span class="ch-row-val green">14 (35.9% conv)</span></div>
+      <div class="ch-row"><span class="ch-row-label">Leads sold</span><span class="ch-row-val">0</span></div>
+      <div class="ch-row"><span class="ch-row-label">Clicks · CW</span><span class="ch-row-val muted">Not active</span></div>
+      <div class="ch-row"><span class="ch-row-label">Click revenue</span><span class="ch-row-val amber">$0 — opportunity</span></div>
+      <div class="ch-footer"><span class="ch-profit pos">+$731 (cost TBD)</span><div class="h-dot green"></div></div>
+    </div>
+    <div class="ch-card rt" onclick="toggleDrawer('rt')">
+      <div class="ch-name">RT Leads (Outbound)</div>
+      <div class="ch-rev">$140</div><div class="ch-rev-sub">Total revenue</div>
+      <div class="ch-row"><span class="ch-row-label">Leads bought</span><span class="ch-row-val">1,705</span></div>
+      <div class="ch-row"><span class="ch-row-label">Billable transfers</span><span class="ch-row-val red">1</span></div>
+      <div class="ch-row"><span class="ch-row-label">Leads sold</span><span class="ch-row-val">0</span></div>
+      <div class="ch-row"><span class="ch-row-label">Clicks · CW</span><span class="ch-row-val muted">Not active</span></div>
+      <div class="ch-row"><span class="ch-row-label">Lead cost</span><span class="ch-row-val red">$1,756</span></div>
+      <div class="ch-footer"><span class="ch-profit neg">−$1,616 profit</span><div class="h-dot red"></div></div>
+    </div>
+    <div class="ch-card coreg" onclick="toggleDrawer('coreg')">
+      <div class="ch-name">CoReg (Outbound)</div>
+      <div class="ch-rev">$200</div><div class="ch-rev-sub">Total revenue</div>
+      <div class="ch-row"><span class="ch-row-label">Leads bought</span><span class="ch-row-val">516</span></div>
+      <div class="ch-row"><span class="ch-row-label">Billable transfers</span><span class="ch-row-val green">3</span></div>
+      <div class="ch-row"><span class="ch-row-label">Leads sold</span><span class="ch-row-val">0</span></div>
+      <div class="ch-row"><span class="ch-row-label">Clicks · CW</span><span class="ch-row-val muted">Not active</span></div>
+      <div class="ch-row"><span class="ch-row-label">Cost</span><span class="ch-row-val">$129</span></div>
+      <div class="ch-footer"><span class="ch-profit pos">+$71 profit</span><div class="h-dot green"></div></div>
+    </div>
+    <div class="ch-card aged" onclick="toggleDrawer('aged')">
+      <div class="ch-name">Aged Leads (Outbound)</div>
+      <div class="ch-rev">$60</div><div class="ch-rev-sub">Total revenue</div>
+      <div class="ch-row"><span class="ch-row-label">Leads bought</span><span class="ch-row-val">1,722</span></div>
+      <div class="ch-row"><span class="ch-row-label">Billable transfers</span><span class="ch-row-val amber">1</span></div>
+      <div class="ch-row"><span class="ch-row-label">Leads sold</span><span class="ch-row-val">0</span></div>
+      <div class="ch-row"><span class="ch-row-label">Clicks · CW</span><span class="ch-row-val muted">Not active</span></div>
+      <div class="ch-row"><span class="ch-row-label">Cost tracked</span><span class="ch-row-val warn">$0 (TBD)</span></div>
+      <div class="ch-footer"><span class="ch-profit pos">+$60 (cost TBD)</span><div class="h-dot amber"></div></div>
+    </div>
+  </div>
+
+  <!-- DRAWERS -->
+  <div class="drawer" id="drawer-meta">
+    <div class="drawer-hdr"><div class="drawer-title">Meta — Revenue breakdown · all monetization types</div><button class="drawer-close" onclick="toggleDrawer('meta')">close ✕</button></div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;">Revenue by type</div>
+        <div class="funnel-row"><div class="funnel-label">Call revenue</div><div class="funnel-track"><div class="funnel-fill" style="width:92%;background:var(--blue);"></div></div><div class="funnel-pct">92%</div><div class="funnel-n">$440.67</div></div>
+        <div class="funnel-row"><div class="funnel-label">Click revenue (CW)</div><div class="funnel-track"><div class="funnel-fill" style="width:6%;background:var(--teal);"></div></div><div class="funnel-pct">6%</div><div class="funnel-n">$31.19</div></div>
+        <div class="funnel-row"><div class="funnel-label">Lead revenue</div><div class="funnel-track"><div class="funnel-fill" style="width:2%;background:var(--amber);"></div></div><div class="funnel-pct">2%</div><div class="funnel-n">$8.09</div></div>
+        <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;">Click funnel</div>
+        <div class="funnel-row"><div class="funnel-label">Total clicks</div><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:var(--surface-3);"></div></div><div class="funnel-pct">100%</div><div class="funnel-n">737</div></div>
+        <div class="funnel-row"><div class="funnel-label">CW billable actions</div><div class="funnel-track"><div class="funnel-fill" style="width:1%;background:var(--teal);"></div></div><div class="funnel-pct">0.95%</div><div class="funnel-n">7</div></div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Buyers: SmartFinancial/QS · QuoteWizard · avg $4.46/CW action</div>
+      </div>
+      <div>
+        <table><tbody>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">CPL (ad spend / leads)</td><td class="mono neg" style="padding:5px 0;">$92.71</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Call billable rate</td><td class="mono" style="padding:5px 0;">19.2% (15 of 78)</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Click → CW billable</td><td class="mono warn" style="padding:5px 0;">0.95% (7 of 737)</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Avg revenue/CW action</td><td class="mono" style="padding:5px 0;">$4.46</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Gross margin</td><td class="mono neg">−248%</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="drawer" id="drawer-dm">
+    <div class="drawer-hdr"><div class="drawer-title">Direct Mail — breakdown</div><button class="drawer-close" onclick="toggleDrawer('dm')">close ✕</button></div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;">Call funnel</div>
+        <div class="funnel-row"><div class="funnel-label">Mail drops</div><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:var(--surface-3);"></div></div><div class="funnel-pct">100%</div><div class="funnel-n">3,178</div></div>
+        <div class="funnel-row"><div class="funnel-label">Connected calls</div><div class="funnel-track"><div class="funnel-fill" style="width:1.2%;background:var(--blue);"></div></div><div class="funnel-pct">1.2%</div><div class="funnel-n">39</div></div>
+        <div class="funnel-row"><div class="funnel-label">Billable calls</div><div class="funnel-track"><div class="funnel-fill" style="width:.45%;background:var(--green);"></div></div><div class="funnel-pct">35.9%↑</div><div class="funnel-n">14</div></div>
+        <div class="funnel-row"><div class="funnel-label">Clicks (CW)</div><div class="funnel-track"><div class="funnel-fill" style="width:0;"></div></div><div class="funnel-pct">—</div><div class="funnel-n">Not active</div></div>
+        <div style="margin-top:8px;padding:8px 10px;background:var(--amber-bg);border-radius:8px;font-size:11px;color:#6B4400;">⚡ Clickwall not active on DM landers — revenue opportunity sitting unused on existing traffic</div>
+      </div>
+      <div>
+        <table><tbody>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Billable conv rate</td><td class="mono pos" style="padding:5px 0;">35.9% — best all channels</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Avg rev/billable call</td><td class="mono" style="padding:5px 0;">$52.19</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Audience types</td><td style="font-size:12px;padding:5px 0;">Call Data · Third Party Data</td></tr>
+          <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Cost of scans</td><td class="mono warn" style="padding:5px 0;">Not tracked May yet</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="drawer" id="drawer-rt">
+    <div class="drawer-hdr"><div class="drawer-title">RT Leads — outbound funnel</div><button class="drawer-close" onclick="toggleDrawer('rt')">close ✕</button></div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:10px;">Funnel (May MTD)</div>
+        <div class="funnel-row"><div class="funnel-label">Leads bought</div><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:var(--surface-3);"></div></div><div class="funnel-pct">100%</div><div class="funnel-n">1,705</div></div>
+        <div class="funnel-row"><div class="funnel-label">Dialed</div><div class="funnel-track"><div class="funnel-fill" style="width:99%;background:var(--blue-lt);"></div></div><div class="funnel-pct">99.1%</div><div class="funnel-n">1,689</div></div>
+        <div class="funnel-row"><div class="funnel-label">Reached</div><div class="funnel-track"><div class="funnel-fill" style="width:54%;background:var(--blue);"></div></div><div class="funnel-pct">53.9%</div><div class="funnel-n">911</div></div>
+        <div class="funnel-row"><div class="funnel-label">Connected</div><div class="funnel-track"><div class="funnel-fill" style="width:19%;background:var(--amber);"></div></div><div class="funnel-pct">18.7%</div><div class="funnel-n">316</div></div>
+        <div class="funnel-row"><div class="funnel-label">Transferred</div><div class="funnel-track"><div class="funnel-fill" style="width:.35%;background:var(--red);"></div></div><div class="funnel-pct">0.35%</div><div class="funnel-n">6</div></div>
+        <div class="funnel-row"><div class="funnel-label">Billable</div><div class="funnel-track"><div class="funnel-fill" style="width:.06%;background:var(--red);"></div></div><div class="funnel-pct">0.06%</div><div class="funnel-n">1</div></div>
+        <div class="funnel-row"><div class="funnel-label">VMs left</div><div class="funnel-track"><div class="funnel-fill" style="width:35%;background:#C5B4E8;"></div></div><div class="funnel-pct">35.2%</div><div class="funnel-n">595</div></div>
+      </div>
+      <div>
+        <table><thead><tr><th>Month</th><th>Leads</th><th>Billable</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr></thead><tbody>
+          <tr><td>Feb</td><td class="mono">2,312</td><td class="mono">14</td><td class="mono">$1,218</td><td class="mono">$2,568</td><td class="mono neg">−$1,349</td></tr>
+          <tr><td>Mar</td><td class="mono">1,402</td><td class="mono">19</td><td class="mono">$937</td><td class="mono">$1,353</td><td class="mono neg">−$416</td></tr>
+          <tr><td>Apr</td><td class="mono">1,878</td><td class="mono">3</td><td class="mono">$268</td><td class="mono">$1,761</td><td class="mono neg">−$1,493</td></tr>
+          <tr><td>May MTD</td><td class="mono">1,705</td><td class="mono bold neg">1</td><td class="mono">$140</td><td class="mono">$1,756</td><td class="mono neg">−$1,616</td></tr>
+        </tbody></table>
+        <div style="margin-top:10px;padding:10px;background:var(--red-bg);border-radius:8px;font-size:12px;color:#7A1A1A;"><strong>⚠ Critical:</strong> Billable transfers 14→19→3→1. Revenue declining every month while cost holds at ~$1,500+. Requires immediate review of transfer→billable failure point.</div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer" id="drawer-coreg">
+    <div class="drawer-hdr"><div class="drawer-title">CoReg — detail breakdown</div><button class="drawer-close" onclick="toggleDrawer('coreg')">close ✕</button></div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <div class="funnel-row"><div class="funnel-label">Leads bought</div><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:var(--surface-3);"></div></div><div class="funnel-pct">100%</div><div class="funnel-n">516</div></div>
+        <div class="funnel-row"><div class="funnel-label">Dialed</div><div class="funnel-track"><div class="funnel-fill" style="width:48%;background:var(--blue-lt);"></div></div><div class="funnel-pct">47.9%</div><div class="funnel-n">247</div></div>
+        <div class="funnel-row"><div class="funnel-label">Reached</div><div class="funnel-track"><div class="funnel-fill" style="width:43%;background:var(--blue);"></div></div><div class="funnel-pct">43.4%</div><div class="funnel-n">224</div></div>
+        <div class="funnel-row"><div class="funnel-label">Connected</div><div class="funnel-track"><div class="funnel-fill" style="width:13%;background:var(--teal);"></div></div><div class="funnel-pct">13.0%</div><div class="funnel-n">67</div></div>
+        <div class="funnel-row"><div class="funnel-label">Transferred</div><div class="funnel-track"><div class="funnel-fill" style="width:.8%;background:var(--green);"></div></div><div class="funnel-pct">0.8%</div><div class="funnel-n">4</div></div>
+        <div class="funnel-row"><div class="funnel-label">Billable</div><div class="funnel-track"><div class="funnel-fill" style="width:.6%;background:var(--green);"></div></div><div class="funnel-pct">0.6%</div><div class="funnel-n">3</div></div>
+        <div class="funnel-row"><div class="funnel-label">VMs left</div><div class="funnel-track"><div class="funnel-fill" style="width:30%;background:#C5B4E8;"></div></div><div class="funnel-pct">30.4%</div><div class="funnel-n">157</div></div>
+      </div>
+      <div><table><tbody>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Revenue</td><td class="mono pos" style="padding:5px 0;">$199.50</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Cost</td><td class="mono" style="padding:5px 0;">$129.00</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Profit</td><td class="mono pos">+$70.50 · 35% margin</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">269 leads not dialed</td><td style="font-size:12px;color:var(--amber);padding:5px 0;">Increase dial rate for more revenue</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Status</td><td style="padding:5px 0;"><span class="badge green">Only profitable outbound channel</span></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="drawer" id="drawer-aged">
+    <div class="drawer-hdr"><div class="drawer-title">Aged Leads — detail breakdown</div><button class="drawer-close" onclick="toggleDrawer('aged')">close ✕</button></div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <div class="funnel-row"><div class="funnel-label">Leads bought</div><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:var(--surface-3);"></div></div><div class="funnel-pct">100%</div><div class="funnel-n">1,722</div></div>
+        <div class="funnel-row"><div class="funnel-label">Dialed</div><div class="funnel-track"><div class="funnel-fill" style="width:99%;background:var(--blue-lt);"></div></div><div class="funnel-pct">98.7%</div><div class="funnel-n">1,700</div></div>
+        <div class="funnel-row"><div class="funnel-label">Connected</div><div class="funnel-track"><div class="funnel-fill" style="width:19%;background:var(--amber);"></div></div><div class="funnel-pct">18.8%</div><div class="funnel-n">319</div></div>
+        <div class="funnel-row"><div class="funnel-label">Transferred</div><div class="funnel-track"><div class="funnel-fill" style="width:.5%;background:var(--red);"></div></div><div class="funnel-pct">0.5%</div><div class="funnel-n">9</div></div>
+        <div class="funnel-row"><div class="funnel-label">Billable</div><div class="funnel-track"><div class="funnel-fill" style="width:.06%;background:var(--red);"></div></div><div class="funnel-pct">0.06%</div><div class="funnel-n">1</div></div>
+        <div class="funnel-row"><div class="funnel-label">VMs left</div><div class="funnel-track"><div class="funnel-fill" style="width:52%;background:#C5B4E8;"></div></div><div class="funnel-pct">51.9%</div><div class="funnel-n">893</div></div>
+      </div>
+      <div><table><tbody>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Revenue</td><td class="mono" style="padding:5px 0;">$60.00</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">Cost</td><td class="mono warn" style="padding:5px 0;">$0 — not entered May yet</td></tr>
+        <tr><td style="color:var(--text-3);font-size:12px;padding:5px 0;">VM rate</td><td class="mono warn" style="padding:5px 0;">51.9% — highest all channels</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- FULL TABLE WITH CLICK COLUMNS -->
+  <div class="tbl-wrap">
+    <div class="tbl-hdr"><div class="tbl-title">Full channel comparison — all monetization types · May MTD</div></div>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>Channel</th><th>Volume</th>
+        <th class="div">Billable calls/xfers</th><th>Call rev</th>
+        <th class="div">Leads sold</th><th>Lead rev</th>
+        <th class="div ck">Clicks total</th><th class="ck">CW billable</th><th class="ck">Click rev</th>
+        <th class="div">Total rev</th><th>Cost</th><th>Profit</th><th>Margin</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;">Meta</td>
+          <td class="mono" style="font-size:11px;">18 leads · 78 calls · 737 clicks</td>
+          <td class="mono div">15</td><td class="mono pos">$440.67</td>
+          <td class="mono div">10</td><td class="mono">$8.09</td>
+          <td class="mono div ck" style="color:var(--teal);">737</td><td class="mono ck" style="color:var(--teal);">7</td><td class="mono ck" style="color:var(--teal);">$31.19</td>
+          <td class="mono div" style="font-weight:600;">$479.95</td>
+          <td class="mono neg">$1,669</td><td class="neg">−$1,189</td><td><span class="badge red">−248%</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Direct Mail</td>
+          <td class="mono" style="font-size:11px;">3,178 drops</td>
+          <td class="mono div">14</td><td class="mono pos">$730.71</td>
+          <td class="mono div">0</td><td class="mono">$0</td>
+          <td class="mono div ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">$0 ⚡</td>
+          <td class="mono div" style="font-weight:600;">$730.71</td>
+          <td class="mono warn">TBD</td><td class="pos">+$730+</td><td><span class="badge green">Best conv</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">RT Leads</td>
+          <td class="mono" style="font-size:11px;">1,705 leads · 1,689 dialed</td>
+          <td class="mono div neg">1</td><td class="mono warn">$93.93</td>
+          <td class="mono div">0</td><td class="mono">$0</td>
+          <td class="mono div ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">$0 ⚡</td>
+          <td class="mono div" style="font-weight:600;">$140.43</td>
+          <td class="mono neg">$1,756</td><td class="neg">−$1,616</td><td><span class="badge red">−1,151%</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">CoReg</td>
+          <td class="mono" style="font-size:11px;">516 leads · 247 dialed</td>
+          <td class="mono div green">3</td><td class="mono pos">$199.50</td>
+          <td class="mono div">0</td><td class="mono">$0</td>
+          <td class="mono div ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">$0 ⚡</td>
+          <td class="mono div" style="font-weight:600;">$199.50</td>
+          <td class="mono">$129</td><td class="pos">+$71</td><td><span class="badge green">35%</span></td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Aged Leads</td>
+          <td class="mono" style="font-size:11px;">1,722 leads · 1,700 dialed</td>
+          <td class="mono div amber">1</td><td class="mono">$60.00</td>
+          <td class="mono div">0</td><td class="mono">$0</td>
+          <td class="mono div ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">—</td><td class="mono ck" style="color:var(--amber);">$0 ⚡</td>
+          <td class="mono div" style="font-weight:600;">$60.00</td>
+          <td class="mono warn">TBD</td><td class="warn">+$60+</td><td><span class="badge amber">Cost TBD</span></td>
+        </tr>
+        <tr class="tot">
+          <td>TOTAL</td>
+          <td class="mono">~3,960 units</td>
+          <td class="mono div">34 billable</td><td class="mono pos">$1,525</td>
+          <td class="mono div">10</td><td class="mono">$8.09</td>
+          <td class="mono div ck" style="color:var(--teal);">737</td><td class="mono ck" style="color:var(--teal);">7</td><td class="mono ck" style="color:var(--teal);">$31.19</td>
+          <td class="mono div">$1,610.59</td>
+          <td class="mono neg">$5,450+</td><td class="neg">−$3,839+</td><td><span class="badge red">−238%+</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div style="padding:10px 16px;background:rgba(29,158,117,.06);font-size:12px;color:#0F5E40;border-top:1px solid rgba(29,158,117,.15);">
+      ⚡ <strong>Click revenue opportunity:</strong> CW is only active on Meta. Activating the same SmartFinancial/QS and QuoteWizard placements on DM, RT Leads, CoReg, and Aged landers would monetize consumers who don't convert to a call — incremental revenue on traffic already being paid for.
+    </div>
+  </div>
+</div></div>
+
+<!-- ══ TAB 2: DIALING OPERATIONS ══ -->
+<div class="tab-pane" id="tab-dialing"><div class="page">
+  <div class="section-hdr"><div><div class="section-title">Dialing operations — May MTD</div><div class="section-sub">RT Leads · CoReg · Aged Leads · daily log and redial sequence tracker</div></div></div>
+  <div class="tbl-wrap" style="margin-bottom:20px;">
+    <div class="tbl-hdr"><div class="tbl-title">Redial sequence — leads active in queue today</div><span style="font-size:11px;color:var(--text-3);">Populate from dialing system daily · A-Team integration pending</span></div>
+    <div style="padding:16px;">
+      <div class="redial-grid">
+        <div class="redial-card" style="border-top:3px solid var(--blue);"><div class="redial-attempt">Attempt 1</div><div class="redial-count">—</div><div class="redial-sub">New leads today</div></div>
+        <div class="redial-card" style="border-top:3px solid var(--teal);"><div class="redial-attempt">Attempt 2</div><div class="redial-count">—</div><div class="redial-sub">Day 2 callbacks</div></div>
+        <div class="redial-card" style="border-top:3px solid var(--amber);"><div class="redial-attempt">Attempt 3</div><div class="redial-count">—</div><div class="redial-sub">Day 3 callbacks</div></div>
+        <div class="redial-card" style="border-top:3px solid var(--orange);"><div class="redial-attempt">Attempt 4</div><div class="redial-count">—</div><div class="redial-sub">Day 4 callbacks</div></div>
+        <div class="redial-card" style="border-top:3px solid var(--red);"><div class="redial-attempt">Attempt 5 (final)</div><div class="redial-count">—</div><div class="redial-sub">Last attempt today</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-hdr">
+      <div class="tbl-title">Daily dialing log — May</div>
+      <div class="pills">
+        <button class="pill active" onclick="switchDialingView('rt',this)">RT Leads</button>
+        <button class="pill" onclick="switchDialingView('coreg',this)">CoReg</button>
+        <button class="pill" onclick="switchDialingView('aged',this)">Aged Leads</button>
+      </div>
+    </div>
+    <div id="dv-rt"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Date</th><th>Bought</th><th>Not Dialed</th><th>Dialed</th><th>Reached</th><th>Reach%</th><th>Connected</th><th>Conn%</th><th>Xferred</th><th>Billable</th><th class="ck">Clicks</th><th class="ck">Click Rev</th><th>Revenue</th><th>VMs</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>May 1</td><td class="mono">89</td><td class="mono">2</td><td class="mono">87</td><td class="mono">120</td><td class="mono">—</td><td class="mono">24</td><td class="mono">27.6%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">96</td><td class="mono neg">$81</td></tr>
+        <tr><td>May 4</td><td class="mono">94</td><td class="mono">6</td><td class="mono">88</td><td class="mono">66</td><td class="mono">75.0%</td><td class="mono">16</td><td class="mono">18.2%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">50</td><td class="mono neg">$86</td></tr>
+        <tr><td>May 5</td><td class="mono">60</td><td class="mono">0</td><td class="mono">60</td><td class="mono">39</td><td class="mono">65.0%</td><td class="mono">14</td><td class="mono">23.3%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">25</td><td class="mono neg">$55</td></tr>
+        <tr><td>May 6</td><td class="mono">94</td><td class="mono">0</td><td class="mono">94</td><td class="mono">63</td><td class="mono">67.0%</td><td class="mono">23</td><td class="mono">24.5%</td><td class="mono">1</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">40</td><td class="mono neg">$86</td></tr>
+        <tr><td>May 7</td><td class="mono">88</td><td class="mono">0</td><td class="mono">88</td><td class="mono">50</td><td class="mono">56.8%</td><td class="mono">11</td><td class="mono">12.5%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">39</td><td class="mono neg">$80</td></tr>
+        <tr><td>May 8</td><td class="mono">77</td><td class="mono">0</td><td class="mono">77</td><td class="mono">48</td><td class="mono">62.3%</td><td class="mono">13</td><td class="mono">16.9%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">35</td><td class="mono neg">$70</td></tr>
+        <tr><td>May 11</td><td class="mono">152</td><td class="mono">0</td><td class="mono">152</td><td class="mono">72</td><td class="mono">47.4%</td><td class="mono">12</td><td class="mono">7.9%</td><td class="mono">2</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">60</td><td class="mono neg">$138</td></tr>
+        <tr><td>May 12</td><td class="mono">221</td><td class="mono">0</td><td class="mono">221</td><td class="mono">116</td><td class="mono">52.5%</td><td class="mono">65</td><td class="mono">29.4%</td><td class="mono">1</td><td class="mono pos bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$93.93</td><td class="mono">51</td><td class="mono neg">$201</td></tr>
+        <tr><td>May 13</td><td class="mono">230</td><td class="mono">1</td><td class="mono">229</td><td class="mono">97</td><td class="mono">42.4%</td><td class="mono">45</td><td class="mono">19.7%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">52</td><td class="mono neg">$209</td></tr>
+        <tr><td>May 14</td><td class="mono">247</td><td class="mono">2</td><td class="mono">245</td><td class="mono">91</td><td class="mono">37.1%</td><td class="mono">36</td><td class="mono">14.7%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">55</td><td class="mono neg">$225</td></tr>
+        <tr><td>May 15</td><td class="mono">353</td><td class="mono">5</td><td class="mono">348</td><td class="mono">149</td><td class="mono">42.8%</td><td class="mono">57</td><td class="mono">16.4%</td><td class="mono">2</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">92</td><td class="mono neg">$321</td></tr>
+        <tr class="tot"><td>MTD Total</td><td class="mono">1,705</td><td class="mono">16</td><td class="mono">1,689</td><td class="mono">911</td><td class="mono">53.9%</td><td class="mono">316</td><td class="mono">18.7%</td><td class="mono">6</td><td class="mono neg bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$140</td><td class="mono">595</td><td class="mono neg">$1,552</td></tr>
+      </tbody>
+    </table></div></div>
+    <div id="dv-coreg" style="display:none;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Date</th><th>Bought</th><th>Not Dialed</th><th>Dialed</th><th>Reached</th><th>Reach%</th><th>Connected</th><th>Conn%</th><th>Xferred</th><th>Billable</th><th class="ck">Clicks</th><th class="ck">Click Rev</th><th>Revenue</th><th>VMs</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>May 7</td><td class="mono">100</td><td class="mono">1</td><td class="mono">99</td><td class="mono">93</td><td class="mono">93.9%</td><td class="mono">26</td><td class="mono">26.3%</td><td class="mono">3</td><td class="mono pos bold">2</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$153</td><td class="mono">67</td><td class="mono">$25</td></tr>
+        <tr><td>May 8</td><td class="mono">100</td><td class="mono">0</td><td class="mono">100</td><td class="mono">96</td><td class="mono">96.0%</td><td class="mono">35</td><td class="mono">35.0%</td><td class="mono">1</td><td class="mono pos bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$46.50</td><td class="mono">61</td><td class="mono">$25</td></tr>
+        <tr><td>May 11</td><td class="mono">100</td><td class="mono">83</td><td class="mono">17</td><td class="mono">14</td><td class="mono">82.4%</td><td class="mono">4</td><td class="mono">23.5%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">10</td><td class="mono">$25</td></tr>
+        <tr><td>May 12</td><td class="mono">100</td><td class="mono">90</td><td class="mono">10</td><td class="mono">7</td><td class="mono">70.0%</td><td class="mono">2</td><td class="mono">20.0%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">5</td><td class="mono">$25</td></tr>
+        <tr><td>May 13</td><td class="mono">100</td><td class="mono">92</td><td class="mono">8</td><td class="mono">5</td><td class="mono">62.5%</td><td class="mono">0</td><td class="mono">0.0%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">5</td><td class="mono">$25</td></tr>
+        <tr><td>May 14–15</td><td class="mono">16</td><td class="mono">3</td><td class="mono">13</td><td class="mono">9</td><td class="mono">69.2%</td><td class="mono">0</td><td class="mono">0.0%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">9</td><td class="mono">$4</td></tr>
+        <tr class="tot"><td>MTD Total</td><td class="mono">516</td><td class="mono">269</td><td class="mono">247</td><td class="mono">224</td><td class="mono">43.4%</td><td class="mono">67</td><td class="mono">13.0%</td><td class="mono">4</td><td class="mono pos bold">3</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$200</td><td class="mono">157</td><td class="mono">$129</td></tr>
+      </tbody>
+    </table></div></div>
+    <div id="dv-aged" style="display:none;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Date</th><th>Bought</th><th>Dialed</th><th>Reached</th><th>Reach%</th><th>Connected</th><th>Conn%</th><th>Xferred</th><th>Billable</th><th class="ck">Clicks</th><th class="ck">Click Rev</th><th>Revenue</th><th>VMs</th></tr></thead>
+      <tbody>
+        <tr><td>May 1</td><td class="mono">136</td><td class="mono">117</td><td class="mono">120</td><td class="mono">—</td><td class="mono">24</td><td class="mono">20.5%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">96</td></tr>
+        <tr><td>May 4</td><td class="mono">336</td><td class="mono">336</td><td class="mono">231</td><td class="mono">68.8%</td><td class="mono">69</td><td class="mono">20.5%</td><td class="mono">3</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">162</td></tr>
+        <tr><td>May 8</td><td class="mono">142</td><td class="mono">142</td><td class="mono">26</td><td class="mono">18.3%</td><td class="mono">26</td><td class="mono">18.3%</td><td class="mono">1</td><td class="mono pos bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$60</td><td class="mono">86</td></tr>
+        <tr><td>May 11</td><td class="mono">325</td><td class="mono">325</td><td class="mono">57</td><td class="mono">17.5%</td><td class="mono">57</td><td class="mono">17.5%</td><td class="mono">2</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">149</td></tr>
+        <tr><td>May 15</td><td class="mono">74</td><td class="mono">73</td><td class="mono">12</td><td class="mono">16.4%</td><td class="mono">12</td><td class="mono">16.4%</td><td class="mono">0</td><td class="mono">0</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono">$0</td><td class="mono">36</td></tr>
+        <tr class="tot"><td>MTD Total</td><td class="mono">1,722</td><td class="mono">1,700</td><td class="mono">319</td><td class="mono">18.8%</td><td class="mono">319</td><td class="mono">18.8%</td><td class="mono">9</td><td class="mono bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$60</td><td class="mono">893</td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+</div></div>
+
+<!-- ══ TAB 3: BUYER PERFORMANCE ══ -->
+<div class="tab-pane" id="tab-buyers"><div class="page">
+
+<style>
+.buyer-view{display:none;}.buyer-view.active{display:block;}
+.eff-calc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:20px;}
+.eff-calc-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.eff-calc-sub{font-size:11px;color:var(--text-3);margin-bottom:16px;}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr) auto repeat(2,1fr);gap:12px;align-items:end;}
+@media(max-width:900px){.calc-grid{grid-template-columns:1fr 1fr;}}
+.calc-field label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px;}
+.calc-field input{width:100%;padding:8px 10px;border:1px solid var(--border-md);border-radius:8px;font-family:var(--mono);font-size:13px;color:var(--text);background:var(--surface-2);}
+.calc-field input:focus{outline:none;border-color:var(--blue);background:var(--surface);}
+.calc-result{background:var(--navy);border-radius:var(--r-lg);padding:14px 16px;color:#fff;}
+.calc-result-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;opacity:.6;margin-bottom:4px;}
+.calc-result-val{font-size:22px;font-weight:600;}
+.calc-result-sub{font-size:11px;opacity:.55;margin-top:3px;}
+.calc-divider{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-3);padding-bottom:4px;}
+.cap-bar-wrap{display:flex;align-items:center;gap:8px;}
+.cap-bar{flex:1;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;}
+.cap-fill{height:100%;border-radius:3px;}
+.cap-fill.low{background:var(--green);}.cap-fill.mid{background:var(--amber);}.cap-fill.high{background:var(--red);}
+.cap-pct{font-size:11px;font-family:var(--mono);color:var(--text-3);width:32px;text-align:right;}
+.state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;padding:16px;}
+.state-card{background:var(--surface-2);border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
+.state-name{font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:4px;}
+.state-rate{font-size:15px;font-weight:600;font-family:var(--mono);}
+.state-rate.high{color:var(--green);}.state-rate.mid{color:var(--amber);}.state-rate.low{color:var(--red);}
+.state-calls{font-size:10px;color:var(--text-3);margin-top:2px;}
+.buyer-hero{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:780px){.buyer-hero{grid-template-columns:1fr;}}
+.buyer-hero-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;position:relative;overflow:hidden;}
+.buyer-hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.buyer-hero-card.qw::before{background:#185FA5;}
+.buyer-hero-card.dms::before{background:#E8632A;}
+.buyer-hero-card.qs::before{background:#1D9E75;}
+.bh-name{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+.bh-rev{font-size:26px;font-weight:600;color:var(--text);line-height:1;}
+.bh-rev-sub{font-size:10px;color:var(--text-3);margin-bottom:10px;}
+.bh-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);}
+.bh-row:last-child{border-bottom:none;}
+.bh-label{color:var(--text-3);}
+.bh-val{font-family:var(--mono);font-weight:500;}
+.bh-val.green{color:var(--green);}.bh-val.amber{color:var(--amber);}.bh-val.red{color:var(--red);}
+.bh-val.orange{color:var(--orange);}
+.unrouted-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
+.unrouted-card{background:var(--surface-2);border-radius:8px;padding:10px 12px;border:1px solid var(--border);}
+.unrouted-reason{font-size:11px;color:var(--text-2);margin-bottom:4px;}
+.unrouted-count{font-size:18px;font-weight:600;color:var(--text);}
+</style>
+
+  <div class="info-alert">ℹ️ <div><strong>March 2026 call data — 266 total calls across all O&O channels.</strong> This tab shows every call routed through the platform in March, by buyer, channel, and state. 45 calls (17%) were never routed to a buyer due to spam, missing data, or no matching geo/hours. Data source: O&O Calls March Buyers report.</div></div>
+
+  <!-- VIEW TOGGLE -->
+  <div class="section-hdr">
+    <div><div class="section-title">Buyer performance — March 2026</div><div class="section-sub">Call buyers · by scorecard · by channel · by state · routing map</div></div>
+    <div class="pills">
+      <button class="pill active" onclick="setBuyerView('scorecard',this)">Buyer scorecard</button>
+      <button class="pill" onclick="setBuyerView('by-channel',this)">By channel</button>
+      <button class="pill" onclick="setBuyerView('by-state',this)">By state</button>
+      <button class="pill" onclick="setBuyerView('routing',this)">Routing map</button>
+    </div>
+  </div>
+
+  <!-- ── VIEW 1: BUYER SCORECARD ── -->
+  <div class="buyer-view active" id="bv-scorecard">
+
+    <!-- TOP 3 BUYER HERO CARDS -->
+    <div class="buyer-hero">
+      <div class="buyer-hero-card qw">
+        <div class="bh-name">🏆 #1 — Quote Wizard</div>
+        <div class="bh-rev">$2,876</div><div class="bh-rev-sub">March revenue · 132 calls received</div>
+        <div class="bh-row"><span class="bh-label">Billable rate</span><span class="bh-val green">32.6% (43 of 132)</span></div>
+        <div class="bh-row"><span class="bh-label">Stated rate</span><span class="bh-val">~$67.69 avg</span></div>
+        <div class="bh-row"><span class="bh-label">Effective rate / call sent</span><span class="bh-val orange">$21.79</span></div>
+        <div class="bh-row"><span class="bh-label">Avg billable call duration</span><span class="bh-val green">822 sec (13.7 min)</span></div>
+        <div class="bh-row"><span class="bh-label">Min duration required</span><span class="bh-val">~148 sec</span></div>
+        <div class="bh-row"><span class="bh-label">Return rate</span><span class="bh-val green">0%</span></div>
+        <div class="bh-row"><span class="bh-label">Best channel</span><span class="bh-val green">RT Transfer (50% bill rate)</span></div>
+      </div>
+      <div class="buyer-hero-card dms">
+        <div class="bh-name">#2 — DMS / Allstate</div>
+        <div class="bh-rev">$542</div><div class="bh-rev-sub">March revenue · 25 calls received</div>
+        <div class="bh-row"><span class="bh-label">Billable rate</span><span class="bh-val green">32.0% (8 of 25)</span></div>
+        <div class="bh-row"><span class="bh-label">Stated rate</span><span class="bh-val">~$69.85 avg</span></div>
+        <div class="bh-row"><span class="bh-label">Effective rate / call sent</span><span class="bh-val orange">$21.70</span></div>
+        <div class="bh-row"><span class="bh-label">Avg billable call duration</span><span class="bh-val green">457 sec (7.6 min)</span></div>
+        <div class="bh-row"><span class="bh-label">Min duration required</span><span class="bh-val">120 sec</span></div>
+        <div class="bh-row"><span class="bh-label">Return rate</span><span class="bh-val green">0%</span></div>
+        <div class="bh-row"><span class="bh-label">Best channel</span><span class="bh-val green">DM Call Data (45.5% bill rate)</span></div>
+      </div>
+      <div class="buyer-hero-card qs">
+        <div class="bh-name">#3 — Quinstreet</div>
+        <div class="bh-rev">$322</div><div class="bh-rev-sub">March revenue · 23 calls received</div>
+        <div class="bh-row"><span class="bh-label">Billable rate</span><span class="bh-val green">30.4% (7 of 23)</span></div>
+        <div class="bh-row"><span class="bh-label">Stated rate</span><span class="bh-val">~$61.15 avg</span></div>
+        <div class="bh-row"><span class="bh-label">Effective rate / call sent</span><span class="bh-val amber">$13.99</span></div>
+        <div class="bh-row"><span class="bh-label">Avg billable call duration</span><span class="bh-val green">607 sec (10.1 min)</span></div>
+        <div class="bh-row"><span class="bh-label">Min duration required</span><span class="bh-val">~150 sec</span></div>
+        <div class="bh-row"><span class="bh-label">Return rate</span><span class="bh-val green">0%</span></div>
+        <div class="bh-row"><span class="bh-label">Best channel</span><span class="bh-val green">RT Transfer (37.5% bill rate)</span></div>
+      </div>
+    </div>
+
+    <!-- EFFECTIVE RATE CALCULATOR -->
+    <div class="eff-calc">
+      <div class="eff-calc-title">Effective rate calculator</div>
+      <div class="eff-calc-sub">The stated rate is not what a buyer actually pays per call delivered. Enter their rate, billable %, and return % to see the true effective rate. QW example: $67.69 × 32.6% × 100% = <strong>$22.07 effective per call sent</strong>.</div>
+      <div class="calc-grid">
+        <div class="calc-field"><label>Stated rate / call</label><input type="number" id="c-rate" placeholder="67.69" oninput="calcEffRate()"></div>
+        <div class="calc-field"><label>Billable rate %</label><input type="number" id="c-bill" placeholder="32.6" oninput="calcEffRate()"></div>
+        <div class="calc-field"><label>Return rate %</label><input type="number" id="c-ret" placeholder="0" oninput="calcEffRate()"></div>
+        <div class="calc-field"><label>Calls sent</label><input type="number" id="c-vol" placeholder="132" oninput="calcEffRate()"></div>
+        <div class="calc-divider">→</div>
+        <div class="calc-result">
+          <div class="calc-result-label">Effective rate / call sent</div>
+          <div class="calc-result-val" id="c-eff-rate">—</div>
+          <div class="calc-result-sub" id="c-eff-sub">Enter values to calculate</div>
+        </div>
+        <div class="calc-result" style="background:var(--blue);">
+          <div class="calc-result-label">Est. revenue at this volume</div>
+          <div class="calc-result-val" id="c-eff-rev">—</div>
+          <div class="calc-result-sub" id="c-eff-rev-sub">Based on calls sent</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL BUYER TABLE -->
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><div class="tbl-title">All call buyers — March 2026 full scorecard</div><span style="font-size:11px;color:var(--text-3);">Sorted by revenue · effective rate = revenue ÷ total calls sent</span></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>Buyer</th><th>Type</th>
+          <th class="div">Calls sent</th><th>Billable</th><th>Billable rate</th>
+          <th class="div">Avg stated rate</th><th>Avg bill duration</th><th>Min duration req</th>
+          <th class="div" style="color:var(--orange);">Effective rate ↓</th>
+          <th class="div">Revenue</th><th>Returns</th><th>Return rate</th>
+          <th class="div">Priority</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;">Quote Wizard</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">132</td><td class="mono">43</td><td><span class="badge green">32.6%</span></td>
+            <td class="mono div">$67.69</td><td class="mono">822 sec</td><td class="mono">~148 sec</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$21.79</td>
+            <td class="mono div pos">$2,876</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge blue">Primary</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">DMS / Allstate</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">25</td><td class="mono">8</td><td><span class="badge green">32.0%</span></td>
+            <td class="mono div">$69.85</td><td class="mono">457 sec</td><td class="mono">120 sec</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$21.70</td>
+            <td class="mono div pos">$542</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge blue">Primary</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Quinstreet</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">23</td><td class="mono">7</td><td><span class="badge green">30.4%</span></td>
+            <td class="mono div">$61.15</td><td class="mono">607 sec</td><td class="mono">~150 sec</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$13.99</td>
+            <td class="mono div pos">$322</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge grey">Secondary</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">John Ramsay — Allstate Agent</td><td><span class="badge teal">Direct agent</span></td>
+            <td class="mono div">3</td><td class="mono">1</td><td><span class="badge green">33.3%</span></td>
+            <td class="mono div">$85.00</td><td class="mono">518 sec</td><td class="mono">120 sec</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$28.33</td>
+            <td class="mono div pos">$85</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge grey">Agent program</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Don Schlagel — Allstate Agent</td><td><span class="badge teal">Direct agent</span></td>
+            <td class="mono div">2</td><td class="mono">1</td><td><span class="badge green">50.0%</span></td>
+            <td class="mono div">$55.00</td><td class="mono">759 sec</td><td class="mono">120 sec</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$27.50</td>
+            <td class="mono div pos">$55</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge grey">Agent program</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Soleo</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">9</td><td class="mono">1</td><td><span class="badge red">11.1%</span></td>
+            <td class="mono div">$48.89</td><td class="mono">448 sec</td><td class="mono">~146 sec</td>
+            <td class="mono div" style="color:var(--red);font-weight:600;">$5.56</td>
+            <td class="mono div warn">$50</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge red">Review — low bill rate</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Next Call Club</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">1</td><td class="mono">1</td><td><span class="badge green">100%</span></td>
+            <td class="mono div">$35.00</td><td class="mono">363 sec</td><td class="mono">120 sec</td>
+            <td class="mono div" style="color:var(--green);font-weight:600;">$35.00</td>
+            <td class="mono div pos">$35</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge grey">Low volume</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Ring Partner (Buyerlink)</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">10</td><td class="mono">1</td><td><span class="badge red">10.0%</span></td>
+            <td class="mono div">$16.17</td><td class="mono">395 sec</td><td class="mono">~123 sec</td>
+            <td class="mono div" style="color:var(--red);font-weight:600;">$2.31</td>
+            <td class="mono div warn">$23</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge red">Low rate + low bill</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">ELocal</td><td><span class="badge blue">API buyer</span></td>
+            <td class="mono div">9</td><td class="mono">0</td><td><span class="badge red">0%</span></td>
+            <td class="mono div">$26.32</td><td class="mono">— (0 billable)</td><td class="mono">~148 sec</td>
+            <td class="mono div neg">$0.00</td>
+            <td class="mono div neg">$0</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge red">⚠ Zero revenue — review</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Kevin Dirst — Allstate Agent</td><td><span class="badge teal">Direct agent</span></td>
+            <td class="mono div">2</td><td class="mono">0</td><td><span class="badge red">0%</span></td>
+            <td class="mono div">$87.00</td><td class="mono">—</td><td class="mono">120 sec</td>
+            <td class="mono div neg">$0.00</td>
+            <td class="mono div neg">$0</td><td class="mono">1</td><td><span class="badge red">50%</span></td>
+            <td class="div"><span class="badge red">1 return · 0 billable</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Sumner Group — Allstate Agent</td><td><span class="badge teal">Direct agent</span></td>
+            <td class="mono div">3</td><td class="mono">0</td><td><span class="badge red">0%</span></td>
+            <td class="mono div">$178.33 stated</td><td class="mono">—</td><td class="mono">120 sec</td>
+            <td class="mono div neg">$0.00</td>
+            <td class="mono div neg">$0</td><td class="mono">0</td><td><span class="badge green">0%</span></td>
+            <td class="div"><span class="badge red">High rate · 0 billable</span></td>
+          </tr>
+          <tr class="tot">
+            <td>TOTAL (routed calls)</td><td>—</td>
+            <td class="mono div">221</td><td class="mono">63</td><td><span class="badge amber">28.5%</span></td>
+            <td class="mono div">—</td><td class="mono">—</td><td class="mono">—</td>
+            <td class="mono div" style="color:var(--orange);font-weight:600;">$17.88</td>
+            <td class="mono div pos">$3,989</td><td class="mono">1</td><td><span class="badge green">0.5%</span></td>
+            <td class="div">—</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div style="padding:11px 14px;background:var(--amber-bg);border-top:1px solid rgba(212,130,10,.2);font-size:12px;color:#6B4400;">
+        <strong>Duration insight:</strong> The biggest lever on billable rate is call duration — not routing. Quote Wizard's billable calls average 822 seconds vs. a 148-second minimum. Calls that connect but don't reach minimum duration are the primary reason 67% of routed calls produce no revenue. This is the same failure driving RT Leads losses in May.
+      </div>
+    </div>
+
+    <!-- UNROUTED CALLS -->
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><div class="tbl-title">Unrouted calls — 45 of 266 total (17%) never reached a buyer</div></div>
+      <div style="padding:14px 16px;">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">These calls came in from O&O channels but were rejected before reaching any buyer. Each represents a consumer who engaged but generated $0 revenue. Fixing these failure modes is incremental revenue with no additional acquisition cost.</div>
+        <div class="unrouted-grid">
+          <div class="unrouted-card"><div class="unrouted-reason">Possibly a spam call</div><div class="unrouted-count">23</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">51% of unrouted · review call scoring threshold</div></div>
+          <div class="unrouted-card"><div class="unrouted-reason">Zip code field missing</div><div class="unrouted-count">7</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">Fix: require zip in lead form / IVR capture</div></div>
+          <div class="unrouted-card"><div class="unrouted-reason">No available geos</div><div class="unrouted-count">6</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">No buyer active in caller's state at that time</div></div>
+          <div class="unrouted-card"><div class="unrouted-reason">Caller blacklisted</div><div class="unrouted-count">3</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">Review blacklist accuracy</div></div>
+          <div class="unrouted-card"><div class="unrouted-reason">No available hours</div><div class="unrouted-count">3</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">Calls came in outside buyer hours — extend coverage</div></div>
+          <div class="unrouted-card"><div class="unrouted-reason">No offers met rate/duration</div><div class="unrouted-count">3</div><div style="font-size:10px;color:var(--text-3);margin-top:3px;">Call quality too low for any active offer</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /bv-scorecard -->
+
+  <!-- ── VIEW 2: BY CHANNEL ── -->
+  <div class="buyer-view" id="bv-by-channel">
+    <div class="info-alert" style="margin-bottom:16px;">ℹ️ <div>Same buyer, different supply source = different billable rate. Quote Wizard bills 50% of RT Transfer calls but only 26.3% of DM Call Data calls. This tells you which supply quality each buyer values most — and therefore which channels should route to which buyers first.</div></div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><div class="tbl-title">Buyer performance by channel — March 2026 · calls with revenue only</div></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>Buyer</th><th>Channel / Campaign</th>
+          <th class="div">Calls</th><th>Billable</th><th>Bill rate</th>
+          <th class="div">Revenue</th><th>Eff rate / call</th>
+        </tr></thead>
+        <tbody>
+          <tr style="background:rgba(24,95,165,.04);">
+            <td rowspan="5" style="font-weight:600;vertical-align:top;padding-top:12px;">Quote Wizard</td>
+            <td>DM · Call Data</td>
+            <td class="mono div">57</td><td class="mono">15</td><td><span class="badge amber">26.3%</span></td>
+            <td class="mono div pos">$1,097</td><td class="mono" style="color:var(--orange);">$19.24</td>
+          </tr>
+          <tr style="background:rgba(24,95,165,.04);">
+            <td>DM · MS Data</td>
+            <td class="mono div">30</td><td class="mono">13</td><td><span class="badge green">43.3%</span></td>
+            <td class="mono div pos">$952</td><td class="mono" style="color:var(--orange);">$31.72</td>
+          </tr>
+          <tr style="background:rgba(24,95,165,.04);">
+            <td>Marco · RT Transfer</td>
+            <td class="mono div">14</td><td class="mono">7</td><td><span class="badge green">50.0%</span></td>
+            <td class="mono div pos">$465</td><td class="mono" style="color:var(--orange);">$33.20</td>
+          </tr>
+          <tr style="background:rgba(24,95,165,.04);">
+            <td>DM · 3–9 min campaigns</td>
+            <td class="mono div">13</td><td class="mono">5</td><td><span class="badge amber">38.5%</span></td>
+            <td class="mono div pos">$256</td><td class="mono" style="color:var(--orange);">$19.69</td>
+          </tr>
+          <tr style="background:rgba(24,95,165,.04);">
+            <td>Marco · VM Callback / Aged</td>
+            <td class="mono div">16</td><td class="mono">3</td><td><span class="badge red">18.8%</span></td>
+            <td class="mono div warn">$107</td><td class="mono" style="color:var(--red);">$6.69</td>
+          </tr>
+          <tr><td colspan="7" style="padding:2px;background:var(--border);"></td></tr>
+          <tr style="background:rgba(232,99,42,.04);">
+            <td rowspan="4" style="font-weight:600;vertical-align:top;padding-top:12px;">DMS / Allstate</td>
+            <td>DM · Call Data</td>
+            <td class="mono div">11</td><td class="mono">5</td><td><span class="badge green">45.5%</span></td>
+            <td class="mono div pos">$318</td><td class="mono" style="color:var(--orange);">$28.93</td>
+          </tr>
+          <tr style="background:rgba(232,99,42,.04);">
+            <td>Marco · RT Transfer</td>
+            <td class="mono div">4</td><td class="mono">1</td><td><span class="badge amber">25.0%</span></td>
+            <td class="mono div pos">$96</td><td class="mono" style="color:var(--orange);">$23.99</td>
+          </tr>
+          <tr style="background:rgba(232,99,42,.04);">
+            <td>DM · MS Data</td>
+            <td class="mono div">6</td><td class="mono">1</td><td><span class="badge red">16.7%</span></td>
+            <td class="mono div warn">$81</td><td class="mono" style="color:var(--red);">$13.46</td>
+          </tr>
+          <tr style="background:rgba(232,99,42,.04);">
+            <td>Marco · Aged Transfer</td>
+            <td class="mono div">3</td><td class="mono">1</td><td><span class="badge amber">33.3%</span></td>
+            <td class="mono div pos">$48</td><td class="mono" style="color:var(--orange);">$15.83</td>
+          </tr>
+          <tr><td colspan="7" style="padding:2px;background:var(--border);"></td></tr>
+          <tr style="background:rgba(29,158,117,.04);">
+            <td rowspan="4" style="font-weight:600;vertical-align:top;padding-top:12px;">Quinstreet</td>
+            <td>Marco · RT Transfer</td>
+            <td class="mono div">8</td><td class="mono">3</td><td><span class="badge green">37.5%</span></td>
+            <td class="mono div pos">$180</td><td class="mono" style="color:var(--orange);">$22.50</td>
+          </tr>
+          <tr style="background:rgba(29,158,117,.04);">
+            <td>DM · MS Data</td>
+            <td class="mono div">4</td><td class="mono">1</td><td><span class="badge amber">25.0%</span></td>
+            <td class="mono div pos">$61</td><td class="mono" style="color:var(--orange);">$15.17</td>
+          </tr>
+          <tr style="background:rgba(29,158,117,.04);">
+            <td>Marco · Aged / VM Callback</td>
+            <td class="mono div">5</td><td class="mono">2</td><td><span class="badge amber">40.0%</span></td>
+            <td class="mono div pos">$61</td><td class="mono" style="color:var(--orange);">$12.20</td>
+          </tr>
+          <tr style="background:rgba(29,158,117,.04);">
+            <td>DM · 3–9 min</td>
+            <td class="mono div">1</td><td class="mono">1</td><td><span class="badge green">100%</span></td>
+            <td class="mono div pos">$20</td><td class="mono" style="color:var(--green);">$20.19</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div style="padding:11px 14px;background:var(--green-bg);border-top:1px solid rgba(26,122,85,.2);font-size:12px;color:#0F5E40;">
+        <strong>Key routing insight:</strong> RT Transfer calls are the highest-quality supply for all three primary buyers — QW bills 50%, QS bills 37.5%, DMS bills 25%. Yet RT Leads is the channel running at −$1,616 MTD in May. The failure is happening at the transfer step or duration threshold, not at the buyer level. Fix the transfer quality and this channel could be the highest-margin in the program.
+      </div>
+    </div>
+  </div><!-- /bv-by-channel -->
+
+  <!-- ── VIEW 3: BY STATE ── -->
+  <div class="buyer-view" id="bv-by-state">
+    <div class="info-alert" style="margin-bottom:16px;">ℹ️ <div>Revenue by state from March 2026 billable calls. Use this to identify which states generate the most call revenue and whether dormant agent states (WA, PA, AZ etc.) already have buyer demand — meaning supply redirect to those states has a ready exit.</div></div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><div class="tbl-title">Revenue by state — March 2026 billable calls</div></div>
+      <div style="overflow-x:auto;"><table>
+        <thead><tr>
+          <th>State</th><th>Billable calls</th><th>Revenue</th><th>Avg rate/call</th>
+          <th class="div">Top buyer</th><th>Agent status</th><th>Supply opportunity</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600;">GA · Georgia</td><td class="mono">7</td><td class="mono pos">$673</td><td class="mono">$96.21</td><td class="div">DMS/Allstate + QW</td><td><span class="badge green">Active agents</span></td><td>Strong buyer demand · grow supply here</td></tr>
+          <tr><td style="font-weight:600;">PA · Pennsylvania</td><td class="mono">8</td><td class="mono pos">$578</td><td class="mono">$72.19</td><td class="div">Quote Wizard</td><td><span class="badge amber">Dormant agents</span></td><td>~730 leads/day supply · buyers ready · reactivate agents</td></tr>
+          <tr><td style="font-weight:600;">TN · Tennessee</td><td class="mono">5</td><td class="mono pos">$408</td><td class="mono">$81.57</td><td class="div">Quote Wizard</td><td><span class="badge green">Active agents</span></td><td>Good revenue per call · expand supply</td></tr>
+          <tr><td style="font-weight:600;">IN · Indiana</td><td class="mono">5</td><td class="mono pos">$389</td><td class="mono">$77.82</td><td class="div">Quote Wizard</td><td><span class="badge amber">Dormant agents</span></td><td>Good buyer rate · redirect supply + reactivate</td></tr>
+          <tr><td style="font-weight:600;">VA · Virginia</td><td class="mono">6</td><td class="mono pos">$388</td><td class="mono">$64.74</td><td class="div">Quote Wizard</td><td><span class="badge amber">Dormant agents</span></td><td>~540 leads/day supply · solid buyer demand</td></tr>
+          <tr><td style="font-weight:600;">WA · Washington</td><td class="mono">5</td><td class="mono pos">$386</td><td class="mono">$77.14</td><td class="div">QW + Allstate agents</td><td><span class="badge amber">Dormant agents</span></td><td>~1,420 leads/day supply · strong buyer demand · top priority</td></tr>
+          <tr><td style="font-weight:600;">OR · Oregon</td><td class="mono">5</td><td class="mono pos">$359</td><td class="mono">$71.69</td><td class="div">Quote Wizard + QS</td><td><span class="badge amber">Dormant agents</span></td><td>~540 leads/day supply · Farmers expansion target</td></tr>
+          <tr><td style="font-weight:600;">OH · Ohio</td><td class="mono">3</td><td class="mono pos">$267</td><td class="mono">$88.97</td><td class="div">Quote Wizard</td><td><span class="badge green">Active agents</span></td><td>High rate per call · scale supply</td></tr>
+          <tr><td style="font-weight:600;">ME · Maine</td><td class="mono">2</td><td class="mono warn">$137</td><td class="mono">$68.40</td><td class="div">Quote Wizard</td><td><span class="badge amber">Dormant agents</span></td><td>Low volume · light supply</td></tr>
+          <tr><td style="font-weight:600;">IL · Illinois</td><td class="mono">2</td><td class="mono warn">$135</td><td class="mono">$67.67</td><td class="div">Quote Wizard</td><td><span class="badge green">Active agents</span></td><td>Active state · grow supply</td></tr>
+          <tr><td style="font-weight:600;">MD · Maryland</td><td class="mono">1</td><td class="mono warn">$50</td><td class="mono">$50.00</td><td class="div">Soleo</td><td><span class="badge green">Active agents</span></td><td>Only 1 billable · low buyer rate here</td></tr>
+          <tr><td style="font-weight:600;">CO · Colorado</td><td class="mono">1</td><td class="mono warn">$48</td><td class="mono">$47.50</td><td class="div">DMS/Allstate</td><td><span class="badge blue">Top revenue state</span></td><td>Only 1 billable call in March despite being top agent state</td></tr>
+          <tr><td style="font-weight:600;">LA · Louisiana</td><td class="mono">2</td><td class="mono warn">$47</td><td class="mono">$23.69</td><td class="div">QW + QS</td><td><span class="badge amber">Dormant agents</span></td><td>Low rate per call · secondary priority</td></tr>
+          <tr><td style="font-weight:600;">FL · Florida</td><td class="mono">2</td><td class="mono warn">$39</td><td class="mono">$19.40</td><td class="div">Ring Partner</td><td><span class="badge green">Active agents</span></td><td>Low buyer rate · consider better buyer mapping</td></tr>
+          <tr><td style="font-weight:600;">KY · Kentucky</td><td class="mono">1</td><td class="mono warn">$35</td><td class="mono">$35.00</td><td class="div">Quinstreet</td><td><span class="badge amber">Dormant agents</span></td><td>Low volume · light supply</td></tr>
+        </tbody>
+      </table></div>
+      <div style="padding:11px 14px;background:rgba(232,99,42,.07);border-top:1px solid rgba(232,99,42,.2);font-size:12px;color:#6B3A00;">
+        <strong>CO alert:</strong> Colorado is the #1 agent revenue state ($15,855 in March) but generated only 1 billable call in the buyer report. This suggests agent activity in CO is primarily driven by live transfer calls going directly to Allstate agents — not through the platform's API buyer stack. Mapping CO supply to the API buyer waterfall could unlock significant incremental call revenue.
+      </div>
+    </div>
+
+    <!-- STATE GRID -->
+    <div class="tbl-wrap" style="margin-top:0">
+      <div class="tbl-hdr"><div class="tbl-title">State revenue heatmap — billable calls March 2026</div></div>
+      <div class="state-grid">
+        <div class="state-card"><div class="state-name">GA · Georgia</div><div class="state-rate high">$673</div><div class="state-calls">7 billable · $96/call avg</div></div>
+        <div class="state-card"><div class="state-name">PA · Pennsylvania</div><div class="state-rate high">$578</div><div class="state-calls">8 billable · $72/call avg · dormant agents</div></div>
+        <div class="state-card"><div class="state-name">TN · Tennessee</div><div class="state-rate high">$408</div><div class="state-calls">5 billable · $82/call avg</div></div>
+        <div class="state-card"><div class="state-name">IN · Indiana</div><div class="state-rate high">$389</div><div class="state-calls">5 billable · $78/call avg · dormant agents</div></div>
+        <div class="state-card"><div class="state-name">VA · Virginia</div><div class="state-rate high">$388</div><div class="state-calls">6 billable · $65/call avg · dormant agents</div></div>
+        <div class="state-card" style="border:1.5px solid var(--orange);"><div class="state-name">WA · Washington ⚡</div><div class="state-rate high">$386</div><div class="state-calls">5 billable · $77/call · ~1,420 supply/day</div></div>
+        <div class="state-card"><div class="state-name">OR · Oregon</div><div class="state-rate high">$359</div><div class="state-calls">5 billable · $72/call avg · dormant agents</div></div>
+        <div class="state-card"><div class="state-name">OH · Ohio</div><div class="state-rate mid">$267</div><div class="state-calls">3 billable · $89/call avg</div></div>
+        <div class="state-card"><div class="state-name">ME · Maine</div><div class="state-rate mid">$137</div><div class="state-calls">2 billable · $68/call avg</div></div>
+        <div class="state-card"><div class="state-name">IL · Illinois</div><div class="state-rate mid">$135</div><div class="state-calls">2 billable · $68/call avg</div></div>
+        <div class="state-card"><div class="state-name">MD · Maryland</div><div class="state-rate low">$50</div><div class="state-calls">1 billable · Soleo buyer</div></div>
+        <div class="state-card"><div class="state-name">CO · Colorado</div><div class="state-rate low">$48</div><div class="state-calls">1 billable · top agent state — gap!</div></div>
+        <div class="state-card"><div class="state-name">LA · Louisiana</div><div class="state-rate low">$47</div><div class="state-calls">2 billable · low rate</div></div>
+        <div class="state-card"><div class="state-name">FL · Florida</div><div class="state-rate low">$39</div><div class="state-calls">2 billable · low buyer rate</div></div>
+        <div class="state-card"><div class="state-name">KY · Kentucky</div><div class="state-rate low">$35</div><div class="state-calls">1 billable · light supply</div></div>
+      </div>
+    </div>
+  </div><!-- /bv-by-state -->
+
+  <!-- ── VIEW 4: ROUTING MAP ── -->
+  <div class="buyer-view" id="bv-routing">
+    <div class="info-alert" style="margin-bottom:16px;">ℹ️ <div>Routes supply to buyers in priority order by effective rate. Highest effective rate buyer gets first shot — when they hit their cap or the call doesn't match their filters, it waterfalls to the next buyer. Update effective rates as data matures.</div></div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><div class="tbl-title">Supply → buyer routing waterfall — current state · based on March data</div></div>
+      <table>
+        <thead><tr>
+          <th>Supply source</th><th>Output type</th><th>Volume</th>
+          <th class="div">1st — Primary buyer</th><th>Eff rate</th>
+          <th class="div">2nd — Secondary</th><th>Eff rate</th>
+          <th class="div">3rd — Overflow</th><th>Eff rate</th>
+          <th class="div">Status</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;">Direct Mail</td><td><span class="badge blue">Calls</span></td><td class="mono">~39/mo connected</td>
+            <td class="mono div">Quote Wizard</td><td class="mono" style="color:var(--orange);">$21.79</td>
+            <td class="mono div">DMS/Allstate</td><td class="mono" style="color:var(--orange);">$21.70</td>
+            <td class="mono div">Quinstreet</td><td class="mono" style="color:var(--amber);">$13.99</td>
+            <td class="div"><span class="badge green">Active · best conv rate</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">RT Leads (outbound)</td><td><span class="badge blue">Calls</span></td><td class="mono">316 connected May MTD</td>
+            <td class="mono div">Quote Wizard</td><td class="mono" style="color:var(--orange);">$33.20 (RT)</td>
+            <td class="mono div">Quinstreet</td><td class="mono" style="color:var(--orange);">$22.50 (RT)</td>
+            <td class="mono div">DMS/Allstate</td><td class="mono" style="color:var(--amber);">$23.99 (RT)</td>
+            <td class="div"><span class="badge red">⚠ 0.06% billable — duration failure</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">CoReg (outbound)</td><td><span class="badge blue">Calls</span></td><td class="mono">67 connected May MTD</td>
+            <td class="mono div">Quote Wizard</td><td class="mono" style="color:var(--orange);">$21.79</td>
+            <td class="mono div">DMS/Allstate</td><td class="mono" style="color:var(--orange);">$21.70</td>
+            <td class="mono div">Quinstreet</td><td class="mono" style="color:var(--amber);">$13.99</td>
+            <td class="div"><span class="badge green">Active · only profitable outbound</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Aged Leads (outbound)</td><td><span class="badge blue">Calls</span></td><td class="mono">319 connected May MTD</td>
+            <td class="mono div">Quote Wizard</td><td class="mono" style="color:var(--orange);">$6.69 (aged)</td>
+            <td class="mono div">DMS/Allstate</td><td class="mono" style="color:var(--amber);">$15.83 (aged)</td>
+            <td class="mono div">Quinstreet</td><td class="mono" style="color:var(--red);">$12.20 (aged)</td>
+            <td class="div"><span class="badge amber">Active · low billable rate</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Meta</td><td><span class="badge blue">Calls</span></td><td class="mono">78 MTD</td>
+            <td class="mono div">Quote Wizard</td><td class="mono" style="color:var(--orange);">$21.79</td>
+            <td class="mono div">DMS/Allstate</td><td class="mono" style="color:var(--orange);">$21.70</td>
+            <td class="mono div">Quinstreet</td><td class="mono" style="color:var(--amber);">$13.99</td>
+            <td class="div"><span class="badge green">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Meta</td><td><span class="badge teal">Leads</span></td><td class="mono">10 MTD</td>
+            <td class="mono div">Allstate agents</td><td class="mono" style="color:var(--text-3);">$8.09 (pilot)</td>
+            <td class="mono div">Farmers agents (CA)</td><td class="mono" style="color:var(--text-3);">Pending</td>
+            <td class="mono div">—</td><td class="mono">—</td>
+            <td class="div"><span class="badge amber">Trial</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Meta · DM · RT · CoReg · Aged</td><td><span class="badge" style="background:rgba(29,158,117,.1);color:var(--teal);">Clicks</span></td><td class="mono">~737 clicks/mo (Meta only)</td>
+            <td class="mono div">SmartFinancial/QS</td><td class="mono" style="color:var(--teal);">Pending</td>
+            <td class="mono div">QW C32554 (short)</td><td class="mono" style="color:var(--teal);">Pending</td>
+            <td class="mono div">QW C32548 (long)</td><td class="mono" style="color:var(--teal);">Pending</td>
+            <td class="div"><span class="badge amber">Active Meta · ⚡ others not active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;">Buyers to review</td><td colspan="9" style="font-size:12px;color:var(--text-2);padding:10px 11px;">
+              <strong style="color:var(--red);">ELocal</strong> — 9 calls routed, 0 billable, $0 revenue. Remove from waterfall or investigate why calls aren't converting. &nbsp;·&nbsp;
+              <strong style="color:var(--red);">Soleo</strong> — 11.1% billable rate, $5.56 effective rate. Far below primary buyers — move to last in waterfall. &nbsp;·&nbsp;
+              <strong style="color:var(--red);">Ring Partner / Buyerlink</strong> — 10% billable, $2.31 effective rate, low stated rate. Consider removing. &nbsp;·&nbsp;
+              <strong style="color:var(--amber);">Kevin Dirst (Allstate Agent)</strong> — 0 billable, 1 return on 2 calls. Review before routing more volume directly.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /bv-routing -->
+
+</div></div>
+
+
+<!-- ══ TAB 4: MONTHLY TRENDS ══ -->
+<div class="tab-pane" id="tab-trends"><div class="page">
+  <div class="section-hdr"><div><div class="section-title">Monthly trends — Feb through May MTD</div><div class="section-sub">All channels · revenue, cost, profit trajectory</div></div></div>
+  <div class="tbl-wrap" style="margin-bottom:20px;">
+    <div class="tbl-hdr"><div class="tbl-title">RT Leads — monthly performance trend (critical channel)</div></div>
+    <table>
+      <thead><tr><th>Month</th><th>Leads</th><th>Dialed</th><th>Connected</th><th>Conn%</th><th>Xferred</th><th>Billable</th><th class="ck">Clicks</th><th class="ck">Click Rev</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Margin</th></tr></thead>
+      <tbody>
+        <tr><td>February</td><td class="mono">2,312</td><td class="mono">2,147</td><td class="mono">407</td><td class="mono">19.0%</td><td class="mono">56</td><td class="mono">14</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$1,218</td><td class="mono neg">$2,568</td><td class="neg">−$1,349</td><td><span class="badge red">−111%</span></td></tr>
+        <tr><td>March</td><td class="mono">1,402</td><td class="mono">1,380</td><td class="mono">259</td><td class="mono">18.8%</td><td class="mono">28</td><td class="mono">19</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono pos">$937</td><td class="mono neg">$1,353</td><td class="neg">−$416</td><td><span class="badge red">−44%</span></td></tr>
+        <tr><td>April</td><td class="mono">1,878</td><td class="mono">734</td><td class="mono">176</td><td class="mono">24.0%</td><td class="mono">14</td><td class="mono">3</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono warn">$268</td><td class="mono neg">$1,761</td><td class="neg">−$1,493</td><td><span class="badge red">−558%</span></td></tr>
+        <tr><td>May MTD</td><td class="mono">1,705</td><td class="mono">1,689</td><td class="mono">316</td><td class="mono">18.7%</td><td class="mono">6</td><td class="mono neg bold">1</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono ck" style="color:var(--text-3);">—</td><td class="mono warn">$140</td><td class="mono neg">$1,756</td><td class="neg">−$1,616</td><td><span class="badge red">−1,151%</span></td></tr>
+      </tbody>
+    </table>
+    <div style="padding:12px 16px;background:var(--red-bg);font-size:12px;color:#7A1A1A;border-top:1px solid rgba(201,48,48,.15);">
+      <strong>Trend alert:</strong> Billable transfers: 14→19→3→1. Revenue: $1,218→$937→$268→$140. Cost holds at ~$1,500+/month regardless. Requires immediate operational review.
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="tbl-wrap" style="margin-bottom:0;">
+      <div class="tbl-hdr"><div class="tbl-title">Revenue by channel — monthly</div></div>
+      <table>
+        <thead><tr><th>Channel / Type</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May MTD</th></tr></thead>
+        <tbody>
+          <tr><td>Meta — Calls</td><td class="mono">$0</td><td class="mono">$0</td><td class="mono">$35.79</td><td class="mono">$440.67</td></tr>
+          <tr><td>Meta — Leads</td><td class="mono">$0</td><td class="mono">$0</td><td class="mono">$21.34</td><td class="mono">$8.09</td></tr>
+          <tr><td style="color:var(--teal);">Meta — Clicks (CW)</td><td class="mono" style="color:var(--teal);">$0</td><td class="mono" style="color:var(--teal);">$0</td><td class="mono" style="color:var(--teal);">$316.41</td><td class="mono" style="color:var(--teal);">$31.19</td></tr>
+          <tr><td>Direct Mail</td><td class="mono">$2,026</td><td class="mono">$2,898</td><td class="mono">$2,419</td><td class="mono pos">$731</td></tr>
+          <tr><td>RT Leads</td><td class="mono">$1,218</td><td class="mono">$937</td><td class="mono">$268</td><td class="mono neg">$140</td></tr>
+          <tr><td>CoReg</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="mono pos">$200</td></tr>
+          <tr><td>Aged Leads</td><td class="mono">—</td><td class="mono">$154</td><td class="mono">$247</td><td class="mono">$60</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-wrap" style="margin-bottom:0;">
+      <div class="tbl-hdr"><div class="tbl-title">Profit by channel — monthly</div></div>
+      <table>
+        <thead><tr><th>Channel</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May MTD</th></tr></thead>
+        <tbody>
+          <tr><td>Meta (all types)</td><td class="mono neg">−$496</td><td class="mono neg">−$495</td><td class="mono neg">−$7,619</td><td class="mono neg">−$1,189</td></tr>
+          <tr><td>Direct Mail</td><td class="mono warn">−$475</td><td class="mono neg">−$2,540</td><td class="mono neg">−$2,340</td><td class="mono warn">TBD</td></tr>
+          <tr><td>RT Leads</td><td class="mono neg">−$1,349</td><td class="mono neg">−$416</td><td class="mono neg">−$1,493</td><td class="mono neg">−$1,616</td></tr>
+          <tr><td>CoReg</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td><td class="mono pos">+$71</td></tr>
+          <tr><td>Aged Leads</td><td class="mono">—</td><td class="mono pos">+$154</td><td class="mono pos">+$247</td><td class="mono warn">TBD</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div></div>
+
+<!-- ══ TAB 5: EXECUTIVE SUMMARY ══ -->
+<div class="tab-pane" id="tab-exec"><div class="page">
+<style>
+.exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+@media(max-width:780px){.exec-grid{grid-template-columns:1fr;}}
+.exec-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+@media(max-width:860px){.exec-3col{grid-template-columns:1fr;}}
+
+/* HEALTH INDICATORS */
+.health-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:900px){.health-strip{grid-template-columns:repeat(3,1fr);}}
+.health-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;position:relative;overflow:hidden;}
+.health-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.health-card.green::after{background:var(--green);}
+.health-card.amber::after{background:var(--amber);}
+.health-card.red::after{background:var(--red);}
+.health-indicator{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.h-light{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.h-light.green{background:var(--green);box-shadow:0 0 6px rgba(26,122,85,.4);}
+.h-light.amber{background:var(--amber);box-shadow:0 0 6px rgba(212,130,10,.4);}
+.h-light.red{background:var(--red);box-shadow:0 0 6px rgba(201,48,48,.4);}
+.health-name{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);}
+.health-val{font-size:20px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.1;}
+.health-val.red{color:var(--red);}.health-val.amber{color:var(--amber);}.health-val.green{color:var(--green);}
+.health-desc{font-size:11px;color:var(--text-3);line-height:1.4;}
+
+/* INSIGHT CARDS */
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;}
+.insight-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border-radius:10px;margin-bottom:10px;}
+.insight-tag.problem{background:var(--red-bg);color:var(--red);}
+.insight-tag.opportunity{background:rgba(29,158,117,.1);color:var(--teal);}
+.insight-tag.warning{background:var(--amber-bg);color:var(--amber);}
+.insight-tag.good{background:var(--green-bg);color:var(--green);}
+.insight-headline{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.3;}
+.insight-body{font-size:13px;color:var(--text-2);line-height:1.6;}
+.insight-body strong{color:var(--text);font-weight:600;}
+.insight-metric{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.im{text-align:center;}
+.im-val{font-size:16px;font-weight:600;font-family:var(--mono);}
+.im-val.red{color:var(--red);}.im-val.green{color:var(--green);}.im-val.amber{color:var(--amber);}
+.im-label{font-size:10px;color:var(--text-3);margin-top:2px;}
+
+/* ACTION ITEMS */
+.action-list{display:flex;flex-direction:column;gap:10px;}
+.action-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;display:flex;align-items:flex-start;gap:14px;}
+.action-item.urgent{border-left:3px solid var(--red);}
+.action-item.high{border-left:3px solid var(--amber);}
+.action-item.medium{border-left:3px solid var(--blue);}
+.action-num{font-size:13px;font-weight:600;color:var(--text-3);font-family:var(--mono);flex-shrink:0;width:20px;margin-top:1px;}
+.action-body{flex:1;}
+.action-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.action-desc{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:6px;}
+.action-impact{font-size:11px;color:var(--teal);font-weight:500;}
+.action-impact.neg{color:var(--red);}
+.action-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.action-owner{font-size:11px;font-weight:500;color:var(--blue);background:rgba(24,95,165,.08);padding:2px 8px;border-radius:8px;}
+.action-urgency{font-size:11px;font-weight:500;padding:2px 8px;border-radius:8px;}
+.action-urgency.urgent{background:var(--red-bg);color:var(--red);}
+.action-urgency.high{background:var(--amber-bg);color:var(--amber);}
+.action-urgency.medium{background:rgba(24,95,165,.08);color:var(--blue);}
+
+/* DECISION BOX */
+.decision-box{background:var(--navy);border-radius:var(--r-lg);padding:22px 24px;color:#fff;margin-bottom:20px;}
+.decision-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.decision-title{font-size:18px;font-weight:600;margin-bottom:10px;line-height:1.3;}
+.decision-body{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:16px;}
+.decision-options{display:flex;gap:10px;flex-wrap:wrap;}
+.d-option{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#fff;line-height:1.4;}
+.d-option strong{display:block;font-weight:600;margin-bottom:3px;}
+
+/* REPORT META */
+.report-meta{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:22px;flex-wrap:wrap;gap:8px;}
+.report-title{font-size:20px;font-weight:600;color:var(--navy);}
+.report-sub{font-size:12px;color:var(--text-3);margin-top:2px;}
+.report-date{font-size:12px;color:var(--text-3);font-family:var(--mono);}
+</style>
+
+  <div class="report-meta">
+    <div>
+      <div class="report-title">Local Hero — Executive Summary</div>
+      <div class="report-sub">O&O channel performance · agent program · supply to demand mapping</div>
+    </div>
+    <div class="report-date">May 2026 · MTD through May 17 · Updated weekly</div>
+  </div>
+
+  <!-- PROGRAM HEALTH STRIP -->
+  <div class="health-strip">
+    <div class="health-card red">
+      <div class="health-indicator"><div class="h-light red"></div><div class="health-name">Overall margin</div></div>
+      <div class="health-val red">−238%</div>
+      <div class="health-desc">Program running at a loss MTD. Revenue $1,611 vs cost $5,450+. Has been negative every month since Feb.</div>
+    </div>
+    <div class="health-card red">
+      <div class="health-indicator"><div class="h-light red"></div><div class="health-name">RT Leads health</div></div>
+      <div class="health-val red">−$1,616</div>
+      <div class="health-desc">Largest channel by cost. Only 1 billable transfer in May MTD on 1,705 leads. Deteriorating each month.</div>
+    </div>
+    <div class="health-card amber">
+      <div class="health-indicator"><div class="h-light amber"></div><div class="health-name">Agent active rate</div></div>
+      <div class="health-val amber">32%</div>
+      <div class="health-desc">36 of 112 enrolled agents spent in March. 76 agents enrolled but never spent. Dormancy is a primary drag.</div>
+    </div>
+    <div class="health-card green">
+      <div class="health-indicator"><div class="h-light green"></div><div class="health-name">CoReg margin</div></div>
+      <div class="health-val green">+35%</div>
+      <div class="health-desc">Only profitable outbound channel. $200 revenue on $129 cost in May MTD. Underutilized — 269 leads not dialed.</div>
+    </div>
+    <div class="health-card amber">
+      <div class="health-indicator"><div class="h-light amber"></div><div class="health-name">Click monetization</div></div>
+      <div class="health-val amber">Meta only</div>
+      <div class="health-desc">$31 click revenue in May. Clickwall not active on DM, RT, CoReg, or Aged landers — revenue left uncaptured.</div>
+    </div>
+  </div>
+
+  <!-- DECISION NEEDED -->
+  <div class="decision-box">
+    <div class="decision-label">⚡ Decision needed from leadership</div>
+    <div class="decision-title">RT Leads is losing money every month and the trend is getting worse — what's the plan?</div>
+    <div class="decision-body">RT Leads has run at a loss every month since February: −$1,349 → −$416 → −$1,493 → −$1,616 MTD in May. The channel generated 1 billable transfer in the first 17 days of May on 1,705 leads bought. The core issue is not volume — it's that connected calls are not converting to billable transfers. This may be a filter quality problem, a buyer acceptance problem, or a call handling problem. The team needs direction on whether to pause the channel while the issue is diagnosed, reduce volume significantly, or continue while investigating. Continuing at current scale is burning approximately $1,500–1,700 per month with minimal return.</div>
+    <div class="decision-options">
+      <div class="d-option"><strong>Option A — Pause RT Leads</strong>Stop buying until transfer→billable failure is diagnosed. Saves ~$1,700/mo immediately. Risk: loses any momentum.</div>
+      <div class="d-option"><strong>Option B — Reduce &amp; test</strong>Cut volume to 50 leads/day and run a focused test on filter quality and buyer acceptance. 30-day diagnostic window.</div>
+      <div class="d-option"><strong>Option C — Continue &amp; investigate</strong>Keep current volume while ops team audits each step of the funnel. Higher cost but preserves scale if fix is found quickly.</div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;">What the data is telling us</div>
+  <div class="exec-grid">
+
+    <div class="insight-card">
+      <div class="insight-tag problem">🔴 Critical problem</div>
+      <div class="insight-headline">The transfer → billable gap in outbound dialing is costing us thousands per month</div>
+      <div class="insight-body">Across RT Leads and Aged Leads, the team is connecting with hundreds of consumers each month — <strong>316 connected in May MTD on RT Leads alone</strong> — but almost none of those calls are converting to billable transfers. The gap between "consumer picked up" and "call counted as billable" is where the program is bleeding. This is not a reach problem — it's a quality or duration problem after connection. Until this is fixed, adding more lead volume makes the loss bigger, not smaller.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val red">316</div><div class="im-label">Connected (RT, May)</div></div>
+        <div class="im"><div class="im-val red">6</div><div class="im-label">Transferred</div></div>
+        <div class="im"><div class="im-val red">1</div><div class="im-label">Billable</div></div>
+        <div class="im"><div class="im-val red">0.06%</div><div class="im-label">Billable rate</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-tag good">🟢 What's working</div>
+      <div class="insight-headline">Direct Mail has the best call quality in the program — and CoReg is the only profitable outbound channel</div>
+      <div class="insight-body">Direct Mail converts <strong>35.9% of connected calls to billable</strong> — nearly 6x the rate of RT Leads. It's the most reliable call quality signal in the program. Meanwhile CoReg, though small, is the only outbound channel generating positive margin (+35%). Both channels should be prioritized for supply growth before adding more RT Leads volume. The lesson: quality of connection matters more than quantity of leads bought.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val green">35.9%</div><div class="im-label">DM billable conv rate</div></div>
+        <div class="im"><div class="im-val green">+$731</div><div class="im-label">DM revenue MTD</div></div>
+        <div class="im"><div class="im-val green">+$71</div><div class="im-label">CoReg profit MTD</div></div>
+        <div class="im"><div class="im-val green">35%</div><div class="im-label">CoReg margin</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-tag opportunity">🟢 Revenue opportunity</div>
+      <div class="insight-headline">Clickwall is only active on one channel — four others are sending traffic with zero click monetization</div>
+      <div class="insight-body">The clickwall (CW) is currently live on Meta landers only, generating a modest $31 in May. But the same buyer placements — SmartFinancial/Quinstreet and QuoteWizard — could be activated on Direct Mail, RT Leads, CoReg, and Aged Lead landers with minimal technical effort. Every consumer who doesn't convert to a call is currently leaving with zero monetization. Adding CW to existing landers is <strong>incremental revenue on traffic already being paid for</strong> — no additional acquisition cost required.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val amber">$31</div><div class="im-label">Click rev today (Meta only)</div></div>
+        <div class="im"><div class="im-val" style="color:var(--teal);">4 channels</div><div class="im-label">With no CW active</div></div>
+        <div class="im"><div class="im-val" style="color:var(--teal);">~3,700+</div><div class="im-label">Leads/mo on inactive landers</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-tag warning">🟡 Agent program</div>
+      <div class="insight-headline">68% of enrolled agents have never spent — but fixing supply quality is the prerequisite to reactivating them</div>
+      <div class="insight-body">76 of 112 enrolled agents have never made a purchase. The instinct is to run reactivation campaigns — but the data suggests the primary reason agents churn or go dormant is <strong>poor lead quality and lack of visibility into pricing</strong>. The average agent stays with the program as primary vendor for only 4 weeks. Reactivating dormant agents before fixing filter compliance and building a real-time pricing dashboard will likely produce the same churn. The right sequence: fix supply quality first, then reactivate with a credible pitch and a better product.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val amber">76</div><div class="im-label">Dormant enrolled agents</div></div>
+        <div class="im"><div class="im-val amber">4 weeks</div><div class="im-label">Avg retention as primary vendor</div></div>
+        <div class="im"><div class="im-val amber">32%</div><div class="im-label">Active agent rate (March)</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-tag opportunity">🟢 Growth opportunity</div>
+      <div class="insight-headline">Washington, Arizona, and Pennsylvania have large daily supply available but zero active agent demand</div>
+      <div class="insight-body">Three dormant states represent significant immediate opportunity once the RT redirect is in place: <strong>Washington (~1,420 leads/day)</strong>, Pennsylvania (~730/day), and Arizona (~650/day) all have enrolled agents who have never spent and meaningful supply volume flowing through O&O channels. If agents can be reactivated with a supply pitch tied to real volume in their state, these three states alone could add meaningful revenue. Washington is also the Farmers expansion target once AgencyZoom integration is complete.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val" style="color:var(--teal);">~1,420/day</div><div class="im-label">WA supply available</div></div>
+        <div class="im"><div class="im-val" style="color:var(--teal);">~730/day</div><div class="im-label">PA supply available</div></div>
+        <div class="im"><div class="im-val" style="color:var(--teal);">~650/day</div><div class="im-label">AZ supply available</div></div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-tag problem">🔴 Data gap</div>
+      <div class="insight-headline">Dispo data is missing for most agents — we cannot optimize what we cannot measure</div>
+      <div class="insight-body">The internet lead trial has 777 leads sold across five agents, but usable dispo data covers only a fraction of those leads. Doug Runyon (Farmers, CA) bought 451 leads with only 12% dispo coverage. Without knowing quote rates and bind rates by agent, it's impossible to prove lead quality to agents, justify pricing, or identify which supply sources produce the best downstream outcomes. The <strong>A-Team integration for automated dispo capture</strong> is the highest-leverage data infrastructure investment the program can make right now — it unblocks optimization across every channel.</div>
+      <div class="insight-metric">
+        <div class="im"><div class="im-val red">12%</div><div class="im-label">Doug Runyon dispo coverage</div></div>
+        <div class="im"><div class="im-val red">20%</div><div class="im-label">Doug Harlow dispo coverage</div></div>
+        <div class="im"><div class="im-val amber">777</div><div class="im-label">Leads sold with partial dispo</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACTION ITEMS -->
+  <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;">Prioritized action items</div>
+  <div class="action-list">
+
+    <div class="action-item urgent">
+      <div class="action-num">1</div>
+      <div class="action-body">
+        <div class="action-title">Diagnose RT Leads transfer → billable failure</div>
+        <div class="action-desc">316 consumers connected in May MTD but only 1 billable transfer recorded. Audit the step between connection and transfer: are calls being routed to the right buyer? Are buyers rejecting transfers due to filter failures? Is call duration the issue? This is the single highest-cost problem in the program right now.</div>
+        <div class="action-impact neg">If not fixed: ~$1,600+ loss/month continues to compound · 4th consecutive losing month on RT Leads</div>
+        <div class="action-meta"><span class="action-owner">Owner: Ops + Dialing team</span><span class="action-urgency urgent">Urgent — this week</span></div>
+      </div>
+    </div>
+
+    <div class="action-item urgent">
+      <div class="action-num">2</div>
+      <div class="action-body">
+        <div class="action-title">Activate clickwall on Direct Mail, RT Leads, CoReg, and Aged landers</div>
+        <div class="action-desc">Same SmartFinancial/QS and QuoteWizard placements active on Meta need to be configured on the four remaining landers. Every non-converting visitor currently generates $0. This is the lowest effort / highest incremental revenue move available — no new traffic, no new buyers, just capturing monetization that already exists.</div>
+        <div class="action-impact">If done: Incremental click revenue on ~3,700+ leads/month in existing channels · zero additional acquisition cost</div>
+        <div class="action-meta"><span class="action-owner">Owner: Tech / Product</span><span class="action-urgency urgent">Urgent — this week</span></div>
+      </div>
+    </div>
+
+    <div class="action-item high">
+      <div class="action-num">3</div>
+      <div class="action-body">
+        <div class="action-title">Complete A-Team dispo integration for agent program reporting</div>
+        <div class="action-desc">Without automated dispo capture, the team cannot measure lead quality, prove value to agents, or optimize supply routing to buyers. Doug Runyon's 451 leads with 12% dispo coverage is the most visible example — but the gap affects all internet lead agents. This is the data infrastructure that unlocks optimization across the entire program.</div>
+        <div class="action-impact">If done: Real quote rate and bind rate data per channel, per agent, per lead source — enables pricing defense and churn reduction</div>
+        <div class="action-meta"><span class="action-owner">Owner: Tech team (A-Team)</span><span class="action-urgency high">High — this month</span></div>
+      </div>
+    </div>
+
+    <div class="action-item high">
+      <div class="action-num">4</div>
+      <div class="action-body">
+        <div class="action-title">Scale CoReg — increase dial rate and lead volume</div>
+        <div class="action-desc">CoReg is the only profitable outbound channel at 35% margin. But 269 of 516 leads bought in May were never dialed — a 52% non-dial rate. Simply dialing existing purchased leads more aggressively could nearly double the billable output with no additional lead cost. Once dial rate is optimized, increase lead volume.</div>
+        <div class="action-impact">If done: Potential to 2x CoReg revenue with existing lead inventory · no additional spend required in near term</div>
+        <div class="action-meta"><span class="action-owner">Owner: Dialing team</span><span class="action-urgency high">High — this week</span></div>
+      </div>
+    </div>
+
+    <div class="action-item high">
+      <div class="action-num">5</div>
+      <div class="action-body">
+        <div class="action-title">Redirect existing O&O supply to agents (Phase 1 strategy)</div>
+        <div class="action-desc">Supply currently flowing to corporate should be redirected to the agent program. CO and TX are the immediate priority states — active agents, proven revenue, top geographic concentration. Build routing logic from Meta and DM leads to agent delivery in those states first, then expand.</div>
+        <div class="action-impact">If done: Increases agent active rate, reduces dormancy, creates the supply-demand match that grows agent program revenue</div>
+        <div class="action-meta"><span class="action-owner">Owner: Brittany + Stacy (rep outreach) · Tech (routing)</span><span class="action-urgency high">High — 30 days</span></div>
+      </div>
+    </div>
+
+    <div class="action-item medium">
+      <div class="action-num">6</div>
+      <div class="action-body">
+        <div class="action-title">Build agent-facing real-time pricing dashboard</div>
+        <div class="action-desc">Agents cite lack of pricing visibility as a primary reason for pausing accounts. Without a live dashboard showing current call pricing, volume availability, and their own performance metrics, agents have no reason to stay active. This is a retention tool, not a reporting tool — and it's what separates a lead vendor from a partner.</div>
+        <div class="action-impact">If done: Reduces agent churn from 4-week average, increases consistently active agent count beyond current 19</div>
+        <div class="action-meta"><span class="action-owner">Owner: Product / Tech</span><span class="action-urgency medium">Medium — 60 days</span></div>
+      </div>
+    </div>
+
+    <div class="action-item medium">
+      <div class="action-num">7</div>
+      <div class="action-body">
+        <div class="action-title">Reactivate high-supply dormant states: WA, PA, AZ, NC, VA</div>
+        <div class="action-desc">Five dormant states have enrolled agents who've never spent and significant daily supply available. Washington has ~1,420 leads/day and is also the Farmers expansion target. Build a targeted outreach sequence for dormant agents in these states, led by Brittany and Stacy, timed to when the supply redirect is in place so there's a real product to pitch.</div>
+        <div class="action-impact">If done: Potential to activate 15–25 new spending agents in states where supply already exists</div>
+        <div class="action-meta"><span class="action-owner">Owner: Brittany (WA, PA, AZ, NC, VA) + Stacy (WA)</span><span class="action-urgency medium">Medium — 45 days</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:20px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r-lg);font-size:12px;color:var(--text-3);border:1px solid var(--border);">
+    <strong style="color:var(--text-2);">About this summary</strong> · Generated from May 2026 O&O Daily Tracking data (MTD through May 17) and March 2026 agent program data. Supply volume figures for dormant states are estimated. Buyer rates and dispo metrics are partially confirmed — see individual channel tabs for full detail. Updated weekly before Wednesday team meetings.
+  </div>
+
+</div></div>
+
+<script>
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleDrawer(id){
+  const d=document.getElementById('drawer-'+id);
+  const isOpen=d.classList.contains('open');
+  document.querySelectorAll('.drawer').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.ch-card').forEach(x=>x.classList.remove('selected'));
+  if(!isOpen){
+    d.classList.add('open');
+    const c=document.querySelector('.ch-card.'+id);
+    if(c)c.classList.add('selected');
+    setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  }
+}
+function setBuyerView(id,btn){
+  document.querySelectorAll('.buyer-view').forEach(v=>v.classList.remove('active'));
+  const el = document.getElementById('bv-'+id);
+  if(el) el.classList.add('active');
+  btn.closest('.pills').querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setStateView(id,btn){
+  btn.closest('.pills').querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setVertView(id,btn){
+  btn.closest('.pills').querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+}
+function calcEffRate(){
+  const rate=parseFloat(document.getElementById('c-rate').value)||0;
+  const bill=parseFloat(document.getElementById('c-bill').value)||0;
+  const ret=parseFloat(document.getElementById('c-ret').value)||0;
+  const vol=parseFloat(document.getElementById('c-vol').value)||0;
+  if(rate&&bill){
+    const eff=rate*(bill/100)*(1-(ret/100));
+    document.getElementById('c-eff-rate').textContent='$'+eff.toFixed(2);
+    document.getElementById('c-eff-sub').textContent='vs stated $'+rate.toFixed(2)+' ('+Math.round(eff/rate*100)+'% of stated)';
+    if(vol){
+      const rev=eff*vol;
+      document.getElementById('c-eff-rev').textContent='$'+rev.toFixed(2);
+      document.getElementById('c-eff-rev-sub').textContent=Math.round(vol*(bill/100)*(1-ret/100))+' billable of '+vol+' sent';
+    }
+  } else {
+    document.getElementById('c-eff-rate').textContent='—';
+    document.getElementById('c-eff-sub').textContent='Enter values to calculate';
+  }
+}
+function switchDialingView(id,btn){
+  ['rt','coreg','aged'].forEach(v=>{
+    document.getElementById('dv-'+v).style.display=v===id?'':'none';
+  });
+  btn.closest('.pills').querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
