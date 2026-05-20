@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Visiqua / O&O Initiatives</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#f9fafb;font-family:'Inter',-apple-system,sans-serif;color:#111827;}
+  ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#f3f4f6;}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px;}
+  @keyframes fadein{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+  .card{transition:all 0.12s;cursor:pointer;}
+  .card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);border-color:#d1d5db!important;transform:translateY(-1px);}
+  .hov{cursor:pointer;transition:opacity 0.1s;}.hov:hover{opacity:0.7;}
+  input:focus,select:focus,textarea:focus{border-color:#6366f1!important;box-shadow:0 0 0 3px rgba(99,102,241,0.1);outline:none;}
+  textarea{resize:vertical;}
+  .sidebar-item:hover{background:#f3f4f6;cursor:pointer;}
+  .pf-btn:hover{border-color:#6366f1!important;color:#4f46e5!important;}
+  .pin-btn:hover{opacity:1!important;}
+  a{text-decoration:none;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+const PROJECT_GID = "1210853432801702";
+const STORAGE_KEY = "visiqua_oo_tasks_v1";
+
+const DEFAULT_TASKS = [
+  { gid:"1212983707818646", section:"Clicks", name:"Click Wall Buyers", notes:"Need to expand our clicks buyer pool outside of Smart Financial.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214391621587442", section:"Ops & Reporting", name:"Verisk contract for 1st party audits", notes:"Setup a contract with Verisk for 1st party audits on FQI.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1210969166145039", section:"Data Sets & Enrichment", name:"Append/Enrich records — Trestle/Verisk", notes:"Evaluating LexisNexis Current Carrier®, Canopy Connect, Experian, InsuranceXdate, Accurate Append.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214427196172564", section:"Uncategorized", name:"Setup demos with Taalk.ai, Phonely, Moja, etc.", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1210969177376079", section:"Marco - Lead-to-Call", name:"Outbound Dialing using AI", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213006407957457", section:"Websites & Landers", name:"Fraud Prevention", notes:"Proxy, dupe clicks, spammy clicks. Ongoing log of measures being implemented.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214391621587446", section:"Affiliate", name:"Launch affiliate linkout", notes:"CPA linkouts for FQI Auto, Home, and Medicare.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213962026494263", section:"Marco - Lead-to-Call", name:"Incorporate SMS into outbound Marco workflow", notes:"Adding SMS into Marco outbound dialing. Jira: CALLS-3200.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213423943321094", section:"Marco - Lead-to-Call", name:"Create a Tier 1 data flow for Marco dialing", notes:"Higher bid up to $4, cap 50 leads/day. Test volume, pub mix, conversion lift.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213729307344258", section:"Data Sets & Enrichment", name:"AWL Aged Data", notes:"$0.05/record via FTP batch. 48-72hr and 180-day options. Name, address, vehicle Y/M/M.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214047125678231", section:"Clicks", name:"QW clickwall — 2 placements, 1 lander", notes:"Two clickwall placements on FQI auto-020. Zip from IP on load; second fires after short form. ENGHELP-613.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213729307344270", section:"Aged Data", name:"RevShare Integration with Boss Leads", notes:"Rev share on aged data across Auto, Home, Life, Final Expense, Health. Segmented 0-90d, 90-180d, <1yr, 1-2yr.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213878742684820", section:"Clicks", name:"Integrate EF postback into Clicks2Convert", notes:"Track click revenue in Everflow at click_id level. C2C fires EF postback on revenue event.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214391621587430", section:"Digital", name:"Add other traffic types?", notes:"Evaluating Native, TikTok, Snap.", priority:"P3", status:"Ideation", owner:"" },
+  { gid:"1214391621587427", section:"Direct Mail", name:"Add new mailhouse partners", notes:"Lob, Postalytics, Summit Mail.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214035515739218", section:"Marco - Lead-to-Call", name:"Create Marco as a buyer of FQI O&O leads", notes:"Marco to dial all FQI leads. Offer: FQI - Auto - Direct Post - O&O. Pause other buyers once live.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1213962026494267", section:"Websites & Landers", name:"Create short form FQI — Auto lander for click wall", notes:"Short form lander with clickwall. Placement on load; second fires on submit with additional data.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1213432348133248", section:"Websites & Landers", name:"Home insurance — Branded Specs", notes:"Integrate FQI Home Insurance shared posting specs into Fluent Forms.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213542876355050", section:"Uncategorized", name:"QuoteWizard — Click Wall", notes:"Contract uploaded. Jamie running point.", priority:"P2", status:"In Progress", owner:"Jamie" },
+  { gid:"1213271327198216", section:"Creatives", name:"O&O Competitor Research", notes:"Otto Insurance, Best Price Auto, Insurify ad creative via FB Ads Library.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213271327198212", section:"Creatives", name:"O&O Future Creatives Storyboard", notes:"Three new categories: Storytelling/Content, Entertaining Distraction, Influencer/Video.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213729307414884", section:"Compliance & Legal", name:"Chris — What data falls under EBR?", notes:"Can we call on aged data with shared ownership? Does a billable call establish EBR?", priority:"P1", status:"In Progress", owner:"Chris" },
+  { gid:"1213729307414872", section:"Aged Data", name:"Revshare deals with other call centers/clients", notes:"Target clients with own call centers. Provide data to dial on, buy the call back.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213729307414867", section:"Marco - Lead-to-Call", name:"Agent flow with Marco", notes:"Premium product, filtered consumers. Bids start $65. Target 400 calls/day by Q4 2026. 350 new agents.", priority:"P0", status:"In Progress", owner:"" },
+  { gid:"1213619772214515", section:"Uncategorized", name:"Add custom Marco for coreg", notes:"Jira: CALLS-3143.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213429159758180", section:"Websites & Landers", name:"Create click wall tiers/validation", notes:"LeadAIQ score gates: <60 no clickwall, 60-80 Tier 3, 81-90 Tier 2, 91-100 Tier 1.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1212983707818653", section:"Uncategorized", name:"Apollo Interactive", notes:"", priority:"P2", status:"Ideation", owner:"" },
+  { gid:"1212983709186226", section:"Uncategorized", name:"DataLot", notes:"", priority:"P2", status:"Ideation", owner:"" },
+  { gid:"1209886872117026", section:"Uncategorized", name:"Money.com", notes:"Publisher agreement — we are the pub. Pull in their click wall ads.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1212983707818651", section:"Uncategorized", name:"QuinStreet", notes:"", priority:"P2", status:"Ideation", owner:"" },
+  { gid:"1213423775305279", section:"Websites & Landers", name:"Update GPC signals", notes:"Implement GPC signal recognition. Disable tracking for PI sale/sharing in applicable states.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1213423775305282", section:"Websites & Landers", name:"API Posting — L2C — WP/EverFlow", notes:"Connect Leads2Convert, Everflow, WordPress. Pass callerID, Zip, Click_id. ENGHELP-594.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1212983707818649", section:"Uncategorized", name:"Otto Insurance", notes:"", priority:"P2", status:"Ideation", owner:"" },
+  { gid:"1212559287885995", section:"Ops & Reporting", name:"Set up Observe.ai moments & reports for O&O calls", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1212983709186237", section:"Uncategorized", name:"Kisstera", notes:"Re-activate existing click feed integration from 2022.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213432374002704", section:"Uncategorized", name:"Ad.net", notes:"Existing integration in C2C — reactivate.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1210853432801722", section:"Direct Mail", name:"Medicare — Launch campaign", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1213006407957459", section:"Uncategorized", name:"EverFlow — Add Proxy Block", notes:"Block known proxies to reduce bot/foreign click traffic.", priority:"P1", status:"In Progress", owner:"" },
+  { gid:"1212559705730013", section:"Websites & Landers", name:"Add clickwall popup to Zip code form", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1211293025454227", section:"Ops & Reporting", name:"Report Automation Requests", notes:"Requests for additions/changes submitted via this ticket.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1211248549622616", section:"Creatives", name:"AI creative solutions", notes:"Omneky, Plai, Predis.ai for ad creative. Adobe Express for DM/email HTML. Anyword for copy.", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1211346190119010", section:"Creatives", name:"Creative Request Form", notes:"https://form.asana.com/?k=vWP0DGVXuuR60oUwE9OhSA&d=535308602868885", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1211536098291057", section:"Uncategorized", name:"Create Landing page — coordinate with Creative", notes:"", priority:"P2", status:"In Progress", owner:"" },
+  { gid:"1214951217137206", section:"New Product Builds", name:"[FILTER] Current Carrier Detection — Block same-brand calls", notes:"PROBLEM: Allstate agents receiving calls from existing Allstate customers. No pre-call carrier ID check.\n\nSOLUTION: Integrate carrier lookup API (LexisNexis Current Carrier®, Canopy Connect) at call entry. Must be FCRA-compliant.\n\nOwner: Engineering", priority:"P0", status:"Scoped", owner:"Engineering" },
+  { gid:"1214951192434658", section:"New Product Builds", name:"[FILTER] Continuous Insurance Verification — 6-Month Rule", notes:"PROBLEM: Agents require 6+ months continuous coverage. No pre-call verification.\n\nSOLUTION: Pull insurance history at IVR or pre-connect via data partner.\n\nOwner: Product", priority:"P0", status:"Scoped", owner:"Product" },
+  { gid:"1214951436979369", section:"New Product Builds", name:"[FILTER] DUI / SR-22 Screening at Call Entry", notes:"PROBLEM: Agents exclude DUI/SR-22 drivers. No MVR check at call intake.\n\nSOLUTION: IVR self-report or MVR lookup. Reroute high-risk to non-standard buyers.\n\nOwner: Product", priority:"P1", status:"Scoped", owner:"Product" },
+  { gid:"1214951217294386", section:"New Product Builds", name:"[FILTER] Accident History Filter — 1 Accident Max", notes:"PROBLEM: Max 1 at-fault accident filter not enforced in call flow.\n\nSOLUTION: IVR branch. Bundle with DUI/SR-22 IVR sprint.\n\nOwner: Product", priority:"P1", status:"Scoped", owner:"Product" },
+  { gid:"1214951192578421", section:"New Product Builds", name:"[FILTER] Vehicle Ownership Verification — Own or Lease", notes:"PROBLEM: Agent filter requires consumer to own/lease the vehicle. Currently unverified.\n\nSOLUTION: IVR question. Bundle with DUI/accident IVR sprint.\n\nOwner: Product", priority:"P2", status:"Scoped", owner:"Product" },
+  { gid:"1214951192519928", section:"New Product Builds", name:"[FILTER] Home — Mobile/Manufactured Home Exclusion", notes:"PROBLEM: Agents exclude mobile/manufactured homes. No property type check pre-connect.\n\nSOLUTION: IVR or auto-classify via CoreLogic/Melissa Data.\n\nOwner: Product", priority:"P1", status:"Scoped", owner:"Product" },
+  { gid:"1214951217081018", section:"New Product Builds", name:"[FILTER] Home — Claims History Check (C.L.U.E.)", notes:"PROBLEM: Agents require limited claims history. No C.L.U.E. lookup at intake.\n\nSOLUTION: C.L.U.E. via LexisNexis or IVR self-report.\n\nOwner: Product", priority:"P1", status:"Scoped", owner:"Product" },
+  { gid:"1214951516269163", section:"New Product Builds", name:"[ROUTING] Intelligent Call Routing Engine — Supply Enrichment + Buyer Match", notes:"PROBLEM: Routing is buyer-side filter only. No pre-call consumer enrichment.\n\nSOLUTION: Engine scores consumer data against all buyer filters pre-connect. Routes to highest-match, highest-bid buyer.\n\nOwner: Engineering", priority:"P0", status:"Scoped", owner:"Engineering" },
+  { gid:"1214951452642379", section:"New Product Builds", name:"[ROUTING] Real-Time Pricing Dashboard for Agents", notes:"PROBLEM: Agents have zero pricing visibility by state or product.\n\nSOLUTION: Agent-facing portal with live call pricing, inventory, and performance.\n\nOwner: Product", priority:"P0", status:"Scoped", owner:"Product" },
+  { gid:"1214951217481344", section:"New Product Builds", name:"[ROUTING] Non-Standard Market Overflow Routing", notes:"PROBLEM: Calls failing standard filters are dropped.\n\nSOLUTION: Overflow buyer pool for non-standard/E&S market.\n\nOwner: Sales / Product", priority:"P2", status:"Ideation", owner:"Sales" },
+  { gid:"1214951516226015", section:"New Product Builds", name:"[INTEGRATION] AgencyZoom — Farmers WA/OR Expansion", notes:"PROBLEM: Farmers WA/OR agents blocked until AgencyZoom integration is live.\n\nSOLUTION: AgencyZoom API integration for lead delivery.\n\nOwner: Engineering", priority:"P0", status:"In Progress", owner:"Engineering" },
+  { gid:"1214951192664348", section:"New Product Builds", name:"[INTEGRATION] Sub-ID Tracking & Source Attribution", notes:"PROBLEM: Agent sub-ID data not consistently captured.\n\nSOLUTION: Enforce sub-ID tagging across all sources.\n\nOwner: Engineering", priority:"P1", status:"In Progress", owner:"Engineering" },
+  { gid:"1214951437042221", section:"New Product Builds", name:"[REPORTING] Automated Weekly Agent Report (A Team)", notes:"PROBLEM: All reporting built manually from 4 sources every Wednesday.\n\nSOLUTION: A Team automates ingestion into unified weekly report.\n\nOwner: Ops", priority:"P1", status:"In Progress", owner:"Ops" },
+  { gid:"1214951192566395", section:"New Product Builds", name:"[REPORTING] Agent Return Rate Alerting", notes:"PROBLEM: No alert when return rate spikes. Brandon Black: $4,344 → $0.\n\nSOLUTION: Threshold alerts trigger Slack/email notification.\n\nOwner: Ops / Engineering", priority:"P1", status:"Scoped", owner:"Ops" },
+  { gid:"1214951217391229", section:"New Product Builds", name:"[LEADS] Dispo Completeness Enforcement — Internet Leads", notes:"PROBLEM: Most trial agents have incomplete dispo data.\n\nSOLUTION: Required dispo workflow with auto follow-up at 24h and 72h.\n\nOwner: Product / Ops", priority:"P1", status:"Scoped", owner:"Product" },
+  { gid:"1214951452783668", section:"New Product Builds", name:"[LEADS] Age Filter for Farmers Leads — Under 50", notes:"PROBLEM: Doug Runyon requesting <50 age filter on Farmers leads.\n\nSOLUTION: Age gate at lead submission using DOB.\n\nOwner: Engineering", priority:"P2", status:"Scoped", owner:"Engineering" },
+];
+
+const SECTIONS_LIST = ["All","New Product Builds","Marco - Lead-to-Call","Clicks","Websites & Landers","Data Sets & Enrichment","Aged Data","Direct Mail","Digital","Creatives","Ops & Reporting","Compliance & Legal","Affiliate","Uncategorized"];
+const STATUS_META = { "In Progress":{ color:"#d97706", bg:"#fef3c7" }, "Scoped":{ color:"#2563eb", bg:"#dbeafe" }, "Blocked":{ color:"#dc2626", bg:"#fee2e2" }, "Ideation":{ color:"#7c3aed", bg:"#ede9fe" }, "Done":{ color:"#059669", bg:"#d1fae5" } };
+const PRIORITY_META = { P0:{ label:"P0 Critical", color:"#dc2626", bg:"#fee2e2" }, P1:{ label:"P1 High", color:"#d97706", bg:"#fef3c7" }, P2:{ label:"P2 Medium", color:"#2563eb", bg:"#dbeafe" }, P3:{ label:"P3 Low", color:"#6b7280", bg:"#f3f4f6" } };
+const PRESENTER_FILTERS = [
+  { label:"🔴 P0 Critical", section:"All", priority:"P0", status:"All" },
+  { label:"🏗 New Product Builds", section:"New Product Builds", priority:"All", status:"All" },
+  { label:"⚡ Needs Owner", section:"All", priority:"All", status:"All", noOwner:true },
+  { label:"🔵 Scoped", section:"All", priority:"All", status:"Scoped" },
+  { label:"🟡 In Progress", section:"All", priority:"All", status:"In Progress" },
+];
+const inp = { background:"#fff", border:"1px solid #e5e7eb", borderRadius:6, color:"#111827", padding:"7px 11px", width:"100%", fontSize:12, fontFamily:"inherit", outline:"none", boxSizing:"border-box" };
+const lbl = { fontSize:10, color:"#9ca3af", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:4, display:"block", fontWeight:500 };
+
+function loadState() {
+  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+}
+function saveState(tasks, pinned) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, pinned })); } catch {}
+}
+
+let nextLocalId = 1000;
+
+function App() {
+  const saved = loadState();
+  const [tasks, setTasks] = useState(saved?.tasks || DEFAULT_TASKS);
+  const [pinned, setPinned] = useState(saved?.pinned || []);
+  const [selected, setSelected] = useState(null);
+  const [focusMode, setFocusMode] = useState(false);
+  const [filterSection, setFilterSection] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [filterPriority, setFilterPriority] = useState("All");
+  const [filterNoOwner, setFilterNoOwner] = useState(false);
+  const [search, setSearch] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [newTask, setNewTask] = useState({ name:"", notes:"", section:"New Product Builds", status:"Scoped", priority:"P1", owner:"" });
+  const [editingOwner, setEditingOwner] = useState(null);
+  const [ownerInput, setOwnerInput] = useState("");
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => { saveState(tasks, pinned); }, [tasks, pinned]);
+
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(null), 2500); }
+
+  function updateTask(id, patch) {
+    setTasks(prev => prev.map(t => (t.gid===id||t.id===id) ? { ...t, ...patch } : t));
+    if (selected?.gid===id || selected?.id===id) setSelected(s => ({ ...s, ...patch }));
+  }
+  function addTask() {
+    if (!newTask.name.trim()) return;
+    setTasks(prev => [{ ...newTask, id:`local-${nextLocalId++}`, gid:null }, ...prev]);
+    setShowAdd(false);
+    setNewTask({ name:"", notes:"", section:"New Product Builds", status:"Scoped", priority:"P1", owner:"" });
+    showToast("Task added");
+  }
+  function applyPresenterFilter(f) {
+    setFilterSection(f.section); setFilterPriority(f.priority); setFilterStatus(f.status); setFilterNoOwner(f.noOwner||false); setSearch("");
+  }
+  function togglePin(id) { setPinned(prev => prev.includes(id) ? prev.filter(p=>p!==id) : [...prev, id]); }
+  const tid = t => t.gid || t.id;
+
+  const filtered = useMemo(() => {
+    let list = tasks.filter(t => {
+      if (filterSection !== "All" && t.section !== filterSection) return false;
+      if (filterStatus !== "All" && t.status !== filterStatus) return false;
+      if (filterPriority !== "All" && t.priority !== filterPriority) return false;
+      if (filterNoOwner && t.owner && t.owner.trim()) return false;
+      const q = search.toLowerCase();
+      return !q || t.name.toLowerCase().includes(q) || (t.notes||"").toLowerCase().includes(q);
+    });
+    const pinnedT = list.filter(t => pinned.includes(tid(t)));
+    const rest = list.filter(t => !pinned.includes(tid(t)));
+    return [...pinnedT, ...rest];
+  }, [tasks, filterSection, filterStatus, filterPriority, filterNoOwner, search, pinned]);
+
+  const grouped = useMemo(() => {
+    const map = {};
+    filtered.forEach(t => { if (!map[t.section]) map[t.section] = []; map[t.section].push(t); });
+    return map;
+  }, [filtered]);
+
+  const sectionCounts = useMemo(() => { const c = {}; tasks.forEach(t => { c[t.section] = (c[t.section]||0)+1; }); return c; }, [tasks]);
+  const stats = { total:tasks.length, newProduct:tasks.filter(t=>t.section==="New Product Builds").length, p0:tasks.filter(t=>t.priority==="P0").length, inProgress:tasks.filter(t=>t.status==="In Progress").length, noOwner:tasks.filter(t=>!t.owner||!t.owner.trim()).length };
+
+  function handleExport() {
+    const lines = [`VISIQUA / O&O INITIATIVES — ${new Date().toLocaleDateString()}`, `${filtered.length} tasks shown`, ""];
+    Object.entries(grouped).forEach(([sec, items]) => {
+      lines.push(`## ${sec}`);
+      items.forEach(t => lines.push(`  [${t.priority}] [${t.status}]${t.owner?` (${t.owner})`:""}  ${t.name}`));
+      lines.push("");
+    });
+    const blob = new Blob([lines.join("\n")], { type:"text/plain" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `oo-initiatives-${Date.now()}.txt`; a.click();
+  }
+
+  // Focus mode
+  if (focusMode && selected) {
+    const sm = STATUS_META[selected.status] || STATUS_META["In Progress"];
+    const pm = PRIORITY_META[selected.priority] || PRIORITY_META.P2;
+    const idx = filtered.findIndex(t => tid(t) === tid(selected));
+    return (
+      <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"'Inter',-apple-system,sans-serif", display:"flex", flexDirection:"column" }}>
+        <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"12px 24px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button onClick={()=>setFocusMode(false)} style={{ background:"#f3f4f6", border:"none", borderRadius:6, padding:"6px 12px", fontSize:12, cursor:"pointer", fontWeight:500, color:"#374151" }}>← Back</button>
+            <span style={{ fontSize:12, color:"#9ca3af" }}>Focus Mode</span>
+          </div>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {Object.keys(STATUS_META).map(st => { const m=STATUS_META[st]; const active=selected.status===st; return <span key={st} onClick={()=>updateTask(tid(selected),{status:st})} style={{ fontSize:11, fontWeight:500, padding:"5px 12px", borderRadius:10, cursor:"pointer", background:active?m.bg:"#f9fafb", color:active?m.color:"#6b7280", border:`1px solid ${active?m.color+"33":"#e5e7eb"}` }}>● {st}</span>; })}
+          </div>
+        </div>
+        <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:48 }}>
+          <div style={{ background:"#fff", border:`2px solid ${pm.color}22`, borderLeft:`6px solid ${pm.color}`, borderRadius:16, padding:48, maxWidth:760, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.08)" }}>
+            <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+              <span style={{ fontSize:12, fontWeight:700, color:pm.color, background:pm.bg, padding:"4px 12px", borderRadius:10 }}>{selected.priority}</span>
+              <span style={{ fontSize:12, color:"#6b7280", background:"#f3f4f6", padding:"4px 12px", borderRadius:10 }}>{selected.section}</span>
+              <span style={{ fontSize:12, fontWeight:500, padding:"4px 12px", borderRadius:10, background:sm.bg, color:sm.color }}>● {selected.status}</span>
+              {selected.owner && <span style={{ fontSize:12, color:"#4f46e5", background:"#eef2ff", padding:"4px 12px", borderRadius:10 }}>👤 {selected.owner}</span>}
+            </div>
+            <div style={{ fontSize:28, fontWeight:700, color:"#111827", lineHeight:1.3, marginBottom:28, fontFamily:"'Syne',sans-serif" }}>{selected.name}</div>
+            {selected.notes && <div style={{ fontSize:14, color:"#374151", lineHeight:1.8, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:10, padding:"20px 24px", whiteSpace:"pre-wrap" }}>{selected.notes}</div>}
+            {selected.gid && <a href={`https://app.asana.com/0/${PROJECT_GID}/${selected.gid}`} target="_blank" rel="noreferrer" style={{ display:"inline-block", marginTop:20, fontSize:12, color:"#4f46e5", fontWeight:500 }}>↗ Open in Asana</a>}
+          </div>
+        </div>
+        <div style={{ background:"#fff", borderTop:"1px solid #e5e7eb", padding:"12px 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <button onClick={()=>{ if(idx>0) setSelected(filtered[idx-1]); }} style={{ background:"#f3f4f6", border:"none", borderRadius:6, padding:"7px 16px", fontSize:12, cursor:"pointer", fontWeight:500 }}>← Prev</button>
+          <span style={{ fontSize:11, color:"#9ca3af" }}>{idx+1} of {filtered.length}</span>
+          <button onClick={()=>{ if(idx<filtered.length-1) setSelected(filtered[idx+1]); }} style={{ background:"#f3f4f6", border:"none", borderRadius:6, padding:"7px 16px", fontSize:12, cursor:"pointer", fontWeight:500 }}>Next →</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#f9fafb", fontFamily:"'Inter',-apple-system,sans-serif", color:"#111827" }}>
+      {toast && <div style={{ position:"fixed", top:16, right:16, zIndex:999, background:"#1a1a1a", color:"#fff", borderRadius:8, padding:"10px 16px", fontSize:12, boxShadow:"0 4px 20px rgba(0,0,0,0.2)" }}>{toast}</div>}
+
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"14px 20px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:30, height:30, background:"#4f46e5", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ color:"#fff", fontSize:13, fontFamily:"'Syne',sans-serif", fontWeight:800 }}>V</span></div>
+          <div>
+            <div style={{ fontSize:14, fontWeight:700, color:"#111827", fontFamily:"'Syne',sans-serif" }}>Visiqua / O&O Initiatives</div>
+            <div style={{ fontSize:10, color:"#9ca3af" }}>Asana · {tasks.length} tasks · Project {PROJECT_GID}</div>
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:6 }}>
+          <button className="hov" onClick={handleExport} style={{ background:"#fff", color:"#374151", border:"1px solid #e5e7eb", borderRadius:6, padding:"6px 12px", fontSize:11, cursor:"pointer", fontWeight:500 }}>⬇ Export</button>
+          <a href={`https://app.asana.com/0/${PROJECT_GID}/list`} target="_blank" style={{ background:"#fff", color:"#4f46e5", border:"1px solid #e0e7ff", borderRadius:6, padding:"6px 12px", fontSize:11, fontWeight:500 }}>↗ Asana</a>
+          <button className="hov" onClick={()=>setShowAdd(true)} style={{ background:"#4f46e5", color:"#fff", border:"none", borderRadius:6, padding:"6px 14px", fontSize:11, cursor:"pointer", fontWeight:500 }}>+ New Task</button>
+        </div>
+      </div>
+
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", padding:"8px 20px", display:"flex", gap:6, alignItems:"center", overflowX:"auto" }}>
+        <span style={{ fontSize:10, color:"#9ca3af", fontWeight:600, letterSpacing:"0.06em", whiteSpace:"nowrap", marginRight:4 }}>QUICK FILTER</span>
+        {PRESENTER_FILTERS.map(f => <button key={f.label} className="pf-btn" onClick={()=>applyPresenterFilter(f)} style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:20, padding:"4px 12px", fontSize:11, cursor:"pointer", fontWeight:500, color:"#374151", whiteSpace:"nowrap" }}>{f.label}</button>)}
+        <button className="pf-btn" onClick={()=>{setFilterSection("All");setFilterPriority("All");setFilterStatus("All");setFilterNoOwner(false);setSearch("");}} style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:20, padding:"4px 12px", fontSize:11, cursor:"pointer", fontWeight:500, color:"#6b7280" }}>✕ Clear</button>
+        {pinned.length > 0 && <button className="pf-btn" style={{ background:"#fef3c7", border:"1px solid #fbbf24", borderRadius:20, padding:"4px 12px", fontSize:11, cursor:"pointer", fontWeight:600, color:"#d97706" }}>📌 This Week ({pinned.length})</button>}
+      </div>
+
+      <div style={{ background:"#fff", borderBottom:"1px solid #e5e7eb", display:"flex" }}>
+        {[{l:"Total",v:stats.total,c:"#111827"},{l:"New Prod",v:stats.newProduct,c:"#4f46e5"},{l:"P0 Critical",v:stats.p0,c:"#dc2626"},{l:"In Progress",v:stats.inProgress,c:"#d97706"},{l:"Needs Owner",v:stats.noOwner,c:"#7c3aed"}].map(s => (
+          <div key={s.l} style={{ flex:1, padding:"10px 16px", borderRight:"1px solid #f3f4f6" }}>
+            <div style={{ fontSize:20, fontWeight:700, color:s.c, fontFamily:"'Syne',sans-serif" }}>{s.v}</div>
+            <div style={{ fontSize:9, color:"#9ca3af", letterSpacing:"0.06em", marginTop:1, textTransform:"uppercase", fontWeight:500 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display:"flex", height:"calc(100vh - 166px)" }}>
+        <div style={{ width:190, borderRight:"1px solid #e5e7eb", background:"#fff", padding:"10px 0", overflowY:"auto", flexShrink:0 }}>
+          <div style={{ padding:"0 10px 10px" }}>
+            <input placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)} style={{ ...inp, fontSize:11 }} />
+          </div>
+          {[{heading:"Section",opts:SECTIONS_LIST,active:filterSection,set:setFilterSection},{heading:"Status",opts:["All",...Object.keys(STATUS_META)],active:filterStatus,set:setFilterStatus},{heading:"Priority",opts:["All","P0","P1","P2","P3"],active:filterPriority,set:setFilterPriority}].map(g => (
+            <div key={g.heading} style={{ marginBottom:4 }}>
+              <div style={{ padding:"8px 14px 3px", fontSize:9, color:"#9ca3af", letterSpacing:"0.08em", textTransform:"uppercase", fontWeight:600 }}>{g.heading}</div>
+              {g.opts.map(o => { const active=g.active===o; const accent=STATUS_META[o]?.color||PRIORITY_META[o]?.color||"#4f46e5"; const activeBg=STATUS_META[o]?.bg||PRIORITY_META[o]?.bg||"#eef2ff"; return <div key={o} className="sidebar-item" onClick={()=>g.set(o)} style={{ padding:"5px 14px", fontSize:11, display:"flex", justifyContent:"space-between", alignItems:"center", color:active?accent:"#374151", fontWeight:active?600:400, background:active?activeBg:"transparent", borderLeft:active?`3px solid ${accent}`:"3px solid transparent" }}><span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o==="All"?`All ${g.heading}s`:o}</span>{g.heading==="Section"&&o!=="All"&&sectionCounts[o]&&<span style={{ fontSize:9, color:"#9ca3af", background:"#f3f4f6", borderRadius:10, padding:"1px 5px", flexShrink:0, marginLeft:3 }}>{sectionCounts[o]}</span>}</div>; })}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ flex:1, overflowY:"auto", padding:"14px 16px", background:"#f9fafb" }}>
+          <div style={{ fontSize:10, color:"#9ca3af", marginBottom:10, fontWeight:500, letterSpacing:"0.04em", textTransform:"uppercase" }}>{filtered.length} tasks</div>
+          {Object.entries(grouped).map(([sec, items]) => (
+            <div key={sec} style={{ marginBottom:20 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:"#374151", letterSpacing:"0.04em", textTransform:"uppercase" }}>{sec}</div>
+                <div style={{ flex:1, height:1, background:"#e5e7eb" }} />
+                <div style={{ fontSize:10, color:"#9ca3af", background:"#f3f4f6", borderRadius:10, padding:"1px 7px" }}>{items.length}</div>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                {items.map(task => {
+                  const sm=STATUS_META[task.status]||STATUS_META["In Progress"];
+                  const pm=PRIORITY_META[task.priority]||PRIORITY_META.P2;
+                  const isPinned=pinned.includes(tid(task));
+                  const isNew=task.section==="New Product Builds";
+                  return (
+                    <div key={tid(task)} className="card" style={{ background:isPinned?"#fffbeb":"#fff", border:isPinned?"1px solid #fbbf24":"1px solid #e5e7eb", borderRadius:8, padding:"10px 14px", borderLeft:`3px solid ${pm.color}`, animation:"fadein 0.15s ease" }}>
+                      <div style={{ display:"flex", alignItems:"flex-start", gap:10, justifyContent:"space-between" }}>
+                        <div style={{ flex:1, minWidth:0 }} onClick={()=>setSelected(task)}>
+                          <div style={{ display:"flex", gap:5, alignItems:"center", marginBottom:3, flexWrap:"wrap" }}>
+                            <span style={{ fontSize:10, fontWeight:600, color:pm.color, background:pm.bg, padding:"1px 7px", borderRadius:10 }}>{task.priority}</span>
+                            {isNew && <span style={{ fontSize:9, fontWeight:600, padding:"1px 6px", borderRadius:10, background:"#eef2ff", color:"#4f46e5" }}>NEW</span>}
+                            {task.owner && <span style={{ fontSize:10, color:"#6b7280" }}>👤 {task.owner}</span>}
+                            {!task.owner && <span style={{ fontSize:10, color:"#dc2626", background:"#fee2e2", padding:"1px 6px", borderRadius:10, cursor:"pointer" }} onClick={e=>{e.stopPropagation();setEditingOwner(tid(task));setOwnerInput("");}}>+ owner</span>}
+                          </div>
+                          <div style={{ fontSize:13, fontWeight:600, color:"#111827", marginBottom:task.notes?2:0, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{task.name}</div>
+                          {task.notes && <div style={{ fontSize:11, color:"#6b7280", lineHeight:1.5 }}>{task.notes.split("\n")[0].slice(0,85)}{task.notes.length>85?"…":""}</div>}
+                        </div>
+                        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
+                          <span style={{ fontSize:10, fontWeight:500, padding:"2px 9px", borderRadius:10, background:sm.bg, color:sm.color, whiteSpace:"nowrap" }}>● {task.status}</span>
+                          <div style={{ display:"flex", gap:4 }}>
+                            <button className="pin-btn" onClick={e=>{e.stopPropagation();togglePin(tid(task));}} style={{ background:"none", border:"none", cursor:"pointer", fontSize:13, opacity:isPinned?1:0.3, padding:"2px 4px" }}>📌</button>
+                            <button className="hov" onClick={e=>{e.stopPropagation();setSelected(task);setFocusMode(true);}} style={{ background:"none", border:"none", cursor:"pointer", fontSize:12, opacity:0.4, padding:"2px 4px" }}>⛶</button>
+                          </div>
+                        </div>
+                      </div>
+                      {editingOwner===tid(task) && (
+                        <div style={{ marginTop:8, display:"flex", gap:6 }} onClick={e=>e.stopPropagation()}>
+                          <input autoFocus value={ownerInput} onChange={e=>setOwnerInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){updateTask(tid(task),{owner:ownerInput});setEditingOwner(null);}if(e.key==="Escape")setEditingOwner(null);}} placeholder="Assign owner…" style={{ ...inp, fontSize:11, padding:"4px 8px", flex:1 }} />
+                          <button onClick={()=>{updateTask(tid(task),{owner:ownerInput});setEditingOwner(null);}} style={{ background:"#4f46e5", color:"#fff", border:"none", borderRadius:5, padding:"4px 10px", fontSize:11, cursor:"pointer" }}>Save</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {selected && !focusMode && (
+          <div style={{ width:340, borderLeft:"1px solid #e5e7eb", overflowY:"auto", padding:"18px", background:"#fff", animation:"fadein 0.15s ease" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                <span style={{ fontSize:10, fontWeight:600, color:PRIORITY_META[selected.priority]?.color, background:PRIORITY_META[selected.priority]?.bg, padding:"2px 8px", borderRadius:10 }}>{selected.priority}</span>
+                <span style={{ fontSize:10, color:"#6b7280", background:"#f3f4f6", padding:"2px 8px", borderRadius:10 }}>{selected.section}</span>
+              </div>
+              <div style={{ display:"flex", gap:6 }}>
+                <button onClick={()=>setFocusMode(true)} style={{ background:"#eef2ff", border:"none", borderRadius:6, padding:"4px 10px", fontSize:11, cursor:"pointer", color:"#4f46e5", fontWeight:500 }}>⛶ Focus</button>
+                <button className="hov" onClick={()=>setSelected(null)} style={{ background:"none", border:"none", color:"#9ca3af", fontSize:18, cursor:"pointer" }}>×</button>
+              </div>
+            </div>
+            <div style={{ fontSize:15, fontWeight:700, color:"#111827", lineHeight:1.4, marginBottom:12, fontFamily:"'Syne',sans-serif" }}>{selected.name}</div>
+            {selected.gid && <a href={`https://app.asana.com/0/${PROJECT_GID}/${selected.gid}`} target="_blank" style={{ fontSize:11, color:"#4f46e5", fontWeight:500, display:"block", marginBottom:14 }}>↗ Open in Asana</a>}
+            <div style={{ marginBottom:14 }}>
+              <span style={lbl}>Owner</span>
+              {editingOwner===tid(selected) ? (
+                <div style={{ display:"flex", gap:6 }}>
+                  <input autoFocus value={ownerInput} onChange={e=>setOwnerInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){updateTask(tid(selected),{owner:ownerInput});setEditingOwner(null);}if(e.key==="Escape")setEditingOwner(null);}} style={{ ...inp, fontSize:12, flex:1 }} />
+                  <button onClick={()=>{updateTask(tid(selected),{owner:ownerInput});setEditingOwner(null);}} style={{ background:"#4f46e5", color:"#fff", border:"none", borderRadius:5, padding:"6px 10px", fontSize:11, cursor:"pointer" }}>Save</button>
+                </div>
+              ) : (
+                <div onClick={()=>{setEditingOwner(tid(selected));setOwnerInput(selected.owner||"");}} style={{ fontSize:13, color:selected.owner?"#111827":"#9ca3af", cursor:"pointer", background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:6, padding:"7px 11px" }}>{selected.owner||"Click to assign…"}</div>
+              )}
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <span style={lbl}>Status</span>
+              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                {Object.keys(STATUS_META).map(st => { const m=STATUS_META[st]; const active=selected.status===st; return <span key={st} className="hov" onClick={()=>updateTask(tid(selected),{status:st})} style={{ fontSize:11, fontWeight:500, padding:"4px 10px", borderRadius:10, cursor:"pointer", background:active?m.bg:"#f9fafb", color:active?m.color:"#6b7280", border:`1px solid ${active?m.color+"33":"#e5e7eb"}` }}>● {st}</span>; })}
+              </div>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <span style={lbl}>Priority</span>
+              <div style={{ display:"flex", gap:5 }}>
+                {["P0","P1","P2","P3"].map(p => { const active=selected.priority===p; const m=PRIORITY_META[p]; return <span key={p} className="hov" onClick={()=>updateTask(tid(selected),{priority:p})} style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:10, cursor:"pointer", background:active?m.bg:"#f9fafb", color:active?m.color:"#6b7280", border:`1px solid ${active?m.color+"33":"#e5e7eb"}` }}>{p}</span>; })}
+              </div>
+            </div>
+            {selected.notes && <div><span style={lbl}>Notes</span><div style={{ fontSize:12, color:"#374151", lineHeight:1.7, background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius:8, padding:"12px 14px", maxHeight:260, overflowY:"auto", whiteSpace:"pre-wrap" }}>{selected.notes}</div></div>}
+            <button onClick={()=>togglePin(tid(selected))} style={{ marginTop:14, background:pinned.includes(tid(selected))?"#fef3c7":"#f9fafb", border:`1px solid ${pinned.includes(tid(selected))?"#fbbf24":"#e5e7eb"}`, borderRadius:6, padding:"7px 14px", fontSize:11, cursor:"pointer", fontWeight:500, color:pinned.includes(tid(selected))?"#d97706":"#6b7280", width:"100%" }}>
+              {pinned.includes(tid(selected)) ? "📌 Pinned to This Week" : "📌 Pin to This Week"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showAdd && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ background:"#fff", borderRadius:12, padding:24, width:"100%", maxWidth:520, boxShadow:"0 20px 60px rgba(0,0,0,0.15)" }}>
+            <div style={{ fontSize:16, fontWeight:700, marginBottom:18, fontFamily:"'Syne',sans-serif" }}>New Task</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div><label style={lbl}>Title *</label><input value={newTask.name} onChange={e=>setNewTask({...newTask,name:e.target.value})} style={inp} placeholder="Task name" /></div>
+              <div><label style={lbl}>Owner</label><input value={newTask.owner} onChange={e=>setNewTask({...newTask,owner:e.target.value})} style={inp} /></div>
+              <div><label style={lbl}>Notes</label><textarea value={newTask.notes} onChange={e=>setNewTask({...newTask,notes:e.target.value})} rows={3} style={{...inp,fontFamily:"inherit"}} /></div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+                {[{k:"section",opts:SECTIONS_LIST.filter(s=>s!=="All")},{k:"priority",opts:["P0","P1","P2","P3"]},{k:"status",opts:Object.keys(STATUS_META)}].map(f => (
+                  <div key={f.k}><label style={lbl}>{f.k}</label><select value={newTask[f.k]} onChange={e=>setNewTask({...newTask,[f.k]:e.target.value})} style={{...inp,cursor:"pointer"}}>{f.opts.map(o=><option key={o}>{o}</option>)}</select></div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:8, marginTop:20 }}>
+              <button className="hov" onClick={addTask} style={{ background:"#4f46e5", color:"#fff", border:"none", borderRadius:6, padding:"9px 22px", fontSize:12, cursor:"pointer", fontWeight:500 }}>Add Task</button>
+              <button className="hov" onClick={()=>setShowAdd(false)} style={{ background:"#fff", color:"#6b7280", border:"1px solid #e5e7eb", borderRadius:6, padding:"9px 22px", fontSize:12, cursor:"pointer" }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
